@@ -82,15 +82,6 @@ nohup "${cmd[@]}" > "$BUILD/qemu-stdout.log" 2>&1 &
 echo $! > "$PIDFILE"
 echo "QEMU started pid=$(cat "$PIDFILE")"
 
-# Headless GRUB often needs Enter — send via QMP after boot menu appears
-(
-  for _ in $(seq 1 60); do
-    [[ -S "$MONITOR_SOCK" ]] && break
-    sleep 1
-  done
-  [[ -S "$MONITOR_SOCK" ]] || exit 0
-  for _ in 1 2 3 4 5 6 8 10; do
-    printf 'sendkey ret\n' | socat - "UNIX-CONNECT:$MONITOR_SOCK" 2>/dev/null || true
-    sleep 20
-  done
-) > "$BUILD/qemu-grub-helper.log" 2>&1 &
+# Headless GRUB: append autoinstall to kernel cmdline via HMP monitor
+nohup bash "$ROOT/iso/scripts/qemu-grub-helper.sh" "$MONITOR_SOCK" "$LOG" \
+  > "$BUILD/qemu-grub-helper.log" 2>&1 &

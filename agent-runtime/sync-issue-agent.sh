@@ -14,9 +14,9 @@ log() { printf '\033[38;5;141m[sync]\033[0m %s\n' "$*"; }
 for f in "$VENDOR"/*.py; do
   [[ -f "$f" ]] || continue
   base="$(basename "$f")"
-  if [[ ! -f "$TARGET/$base" ]]; then
+  if [[ ! -f "$TARGET/$base" ]] || [[ "$f" -nt "$TARGET/$base" ]]; then
     cp -f "$f" "$TARGET/$base"
-    log "installed $base"
+    log "synced $base"
   fi
 done
 

@@ -49,11 +49,12 @@ def run(cmd, timeout=600):
     print(out)
     return out
 
-run("export PATH=\$HOME/bin:\$HOME/.local/bin:\$PATH; whoami; hostname")
+path = 'export PATH="$HOME/.local/bin:$HOME/bin:$HOME/.grok/bin:$PATH"'
+run(path + '; whoami; hostname')
 run("gh auth login --with-token 2>/dev/null <<'TOK'\n" + gh_token + "\nTOK")
-run("export PATH=\$HOME/bin:\$HOME/.local/bin:\$PATH; gh auth status 2>&1 | head -4")
-run("export PATH=\$HOME/bin:\$HOME/.local/bin:\$PATH; habitat init 2>&1")
-run("export PATH=\$HOME/bin:\$HOME/.local/bin:\$PATH; habitat verify 2>&1 | tail -8")
-run("export PATH=\$HOME/bin:\$HOME/.local/bin:\$PATH; issue-agent fix Nueramarcos/agent-habitat-demo " + issue, timeout=900)
+run(path + '; gh auth status 2>&1 | head -4')
+run(path + '; habitat init 2>&1')
+run(path + '; habitat verify 2>&1 | tail -10')
+run(path + '; issue-agent fix Nueramarcos/agent-habitat-demo ' + issue, timeout=900)
 c.close()
 PY

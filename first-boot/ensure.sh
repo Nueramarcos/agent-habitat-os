@@ -10,8 +10,17 @@ if [[ -d "$HOME/bin" ]] && [[ ! -w "$HOME/bin" ]]; then
   log "Fixing ownership of ~/bin"
   sudo chown -R "$(id -un):$(id -gn)" "$HOME/bin" 2>/dev/null || true
 fi
-mkdir -p "$HOME/bin" "$HOME/.local/bin" "$HOME/.config/cockpit" "$HOME/agent-workspaces"
+mkdir -p "$HOME/bin" "$HOME/.local/bin" "$HOME/.grok/bin" "$HOME/.config/cockpit" "$HOME/agent-workspaces"
 chmod 700 "$HOME/.config/cockpit" 2>/dev/null || true
+
+# Bash SSH sessions (session-b, paramiko) need grok on PATH
+if [[ -f "$HABITAT_ROOT/first-boot/bash-path.sh" ]]; then
+  # shellcheck disable=SC1091
+  source "$HABITAT_ROOT/first-boot/bash-path.sh"
+  if [[ -f "$HOME/.bashrc" ]] && ! grep -q 'first-boot/bash-path.sh' "$HOME/.bashrc" 2>/dev/null; then
+    echo '[[ -f "$HOME/agent-habitat-os/first-boot/bash-path.sh" ]] && source "$HOME/agent-habitat-os/first-boot/bash-path.sh"' >> "$HOME/.bashrc"
+  fi
+fi
 
 # ── disk (LVM half-allocated on 32G QEMU disks) ───────────────────────────
 if [[ -x "$HABITAT_ROOT/first-boot/expand-disk.sh" ]]; then
