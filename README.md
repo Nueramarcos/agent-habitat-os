@@ -33,7 +33,7 @@ grok login            # or export XAI_API_KEY=...
 gh auth login
 habitat doctor        # diagnose + auto-repair all known issues
 habitat verify        # 17 health checks
-habitat demo          # 21 pytest (demo repo)
+habitat demo          # 27 pytest (demo repo)
 ```
 
 **Goal:** `habitat verify` green → `habitat fix` opens a PR → CI merges in under an hour.
@@ -42,7 +42,7 @@ habitat demo          # 21 pytest (demo repo)
 habitat fix Nueramarcos/agent-habitat-demo <issue>   # zero-rescue loop
 ```
 
-## Agent demo chain (8 rounds — all merged)
+## Agent demo chain (11 rounds — all merged)
 
 | Round | Bug | Issue | PR |
 |-------|-----|-------|-----|
@@ -54,11 +54,14 @@ habitat fix Nueramarcos/agent-habitat-demo <issue>   # zero-rescue loop
 | 6 | `stddev()` no sqrt | [#9](https://github.com/Nueramarcos/agent-habitat-demo/issues/9) | [#10](https://github.com/Nueramarcos/agent-habitat-demo/pull/10) |
 | 7 | `geometric_mean()` arithmetic | [#11](https://github.com/Nueramarcos/agent-habitat-demo/issues/11) | [#12](https://github.com/Nueramarcos/agent-habitat-demo/pull/12) |
 | 8 | `harmonic_mean()` arithmetic | [#13](https://github.com/Nueramarcos/agent-habitat-demo/issues/13) | [#14](https://github.com/Nueramarcos/agent-habitat-demo/pull/14) (cloud VM) |
+| 9 | `rms()` wrong formula | [#15](https://github.com/Nueramarcos/agent-habitat-demo/issues/15) | [#16](https://github.com/Nueramarcos/agent-habitat-demo/pull/16) |
+| 10 | `weighted_mean()` ignores weights | [#17](https://github.com/Nueramarcos/agent-habitat-demo/issues/17) | [#18](https://github.com/Nueramarcos/agent-habitat-demo/pull/18) |
+| 11 | `percentile()` returns median | [#19](https://github.com/Nueramarcos/agent-habitat-demo/issues/19) | [#20](https://github.com/Nueramarcos/agent-habitat-demo/pull/20) (`habitat fix`) |
 
 Run the next round:
 
 ```bash
-issue-agent fix Nueramarcos/agent-habitat-demo <issue>
+habitat fix Nueramarcos/agent-habitat-demo <issue>
 ```
 
 ## QEMU VM (tested)
@@ -79,7 +82,7 @@ Manual GUI install? See [docs/POST-INSTALL.md](docs/POST-INSTALL.md) — run `fi
 
 **Something broken?** `habitat doctor` fixes disk, ownership, issue-agent modules, RAM tier, and gh/git credentials in one pass.
 
-**Proven on QEMU:** 17/17 `habitat verify` (host + cloud VM), 21/21 `habitat demo`, Ollama 7B + Issue Agent, CI green on GitHub Actions.
+**Proven on QEMU:** 17/17 `habitat verify` (host + cloud VM), 27/27 `habitat demo`, `habitat fix` zero-rescue merge (Round 11), Ollama 7B/1.5B + Issue Agent, CI green on GitHub Actions.
 
 ## Profiles
 

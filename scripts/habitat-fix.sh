@@ -25,6 +25,39 @@ record_outcome() {
 
 slugify() { echo "$1" | tr '/:' '__'; }
 
+issue_is_closed() {
+  local state
+  state="$(gh issue view "$ISSUE" -R "$REPO" --json state --jq '.state' 2>/dev/null || true)"
+  [[ "$state" == "CLOSED" ]]
+}
+
+find_merged_pr() {
+  gh pr list -R "$REPO" --state merged --search "Fix issue #$ISSUE" \
+    --json url,number --jq 'sort_by(.number) | reverse | .[0].url // empty' 2>/dev/null || true
+}
+
+find_open_pr() {
+  local branch="$1"
+  gh pr list -R "$REPO" --head "$branch" --state open \
+    --json url --jq '.[0].url // empty' 2>/dev/null || true
+}
+
+ensure_gitignore_venvs() {
+  local gi=".gitignore"
+  touch "$gi"
+  for pat in .issue-agent-venv/ .venv/ __pycache__/ .pytest_cache/; do
+    grep -qxF "$pat" "$gi" 2>/dev/null || echo "$pat" >> "$gi"
+  done
+}
+
+stage_clean_changes() {
+  ensure_gitignore_venvs
+  git reset HEAD .issue-agent-venv .venv 2>/dev/null || true
+  rm -rf .issue-agent-venv
+  git add -A -- ':!.issue-agent-venv' ':!.issue-agent-venv/**' ':!.venv' ':!.venv/**' 2>/dev/null \
+    || git add habitat/ tests/ .gitignore 2>/dev/null || true
+}
+
 recover_workspace() {
   local ws="$1"
   [[ -d "$ws" ]] || return 1
@@ -55,9 +88,15 @@ for p in pathlib.Path('habitat').rglob('*.py'):
 open_pr_if_needed() {
   local ws="$1" branch="$2"
   cd "$ws"
-  if gh pr list -R "$REPO" --head "$branch" --json number --jq '.[0].number' 2>/dev/null | grep -qE '^[0-9]+$'; then
-    gh pr list -R "$REPO" --head "$branch" --json url --jq '.[0].url'
+  local existing
+  existing="$(find_open_pr "$branch")"
+  if [[ -n "$existing" ]]; then
+    echo "$existing"
     return 0
+  fi
+  if issue_is_closed; then
+    log "issue #$ISSUE already closed — skipping recovery PR"
+    return 1
   fi
   git push -u origin "$branch" 2>/dev/null || git push -f origin "$branch"
   gh api "repos/$REPO/pulls" \
@@ -69,6 +108,12 @@ open_pr_if_needed() {
 wait_and_merge() {
   local pr_url="$1"
   local pr_num="${pr_url##*/}"
+  local pr_state
+  pr_state="$(gh pr view "$pr_num" -R "$REPO" --json state --jq '.state' 2>/dev/null || true)"
+  if [[ "$pr_state" == "MERGED" ]]; then
+    log "PR #$pr_num already merged"
+    return 0
+  fi
   [[ "$MERGE" == "1" ]] || { log "merge skipped (HABITAT_FIX_MERGE=0)"; return 0; }
   log "waiting for CI on PR #$pr_num..."
   for _ in $(seq 1 36); do
@@ -106,6 +151,17 @@ SLUG="$(slugify "$REPO")"
 WS="$HOME/agent-workspaces/${SLUG}-issue-${ISSUE}"
 BRANCH="fix/issue-${ISSUE}"
 
+# Fast path: issue already resolved (e.g. prior run or issue-agent merged + deleted branch)
+if issue_is_closed; then
+  PR_URL="$(find_merged_pr)"
+  if [[ -n "$PR_URL" ]]; then
+    log "issue #$ISSUE already closed — merged PR: $PR_URL"
+    record_outcome "merge_success" "$PR_URL (already resolved)"
+    log "═══ Done in $(( $(date +%s) - START_EPOCH ))s (no agent run) ═══"
+    exit 0
+  fi
+fi
+
 log "running issue-agent fix..."
 set +e
 issue-agent fix "$REPO" "$ISSUE" 2>&1 | tee "/tmp/habitat-fix-${ISSUE}.log"
@@ -114,19 +170,31 @@ set -e
 
 PR_URL=""
 if [[ "$AGENT_RC" -eq 0 ]]; then
-  PR_URL="$(gh pr list -R "$REPO" --head "$BRANCH" --json url --jq '.[0].url' 2>/dev/null || true)"
-fi
-
-if [[ -z "$PR_URL" ]] && recover_workspace "$WS"; then
-  log "recovery: tests pass — finishing PR pipeline"
-  cd "$WS"
-  git add -A
-  if ! git diff --cached --quiet; then
-    git commit -m "Fix issue #$ISSUE (habitat fix recovery)" 2>/dev/null || true
+  PR_URL="$(find_open_pr "$BRANCH")"
+  [[ -z "$PR_URL" ]] && PR_URL="$(find_merged_pr)"
+  if [[ -n "$PR_URL" ]] || issue_is_closed; then
+    PR_URL="${PR_URL:-$(find_merged_pr)}"
+    log "issue-agent succeeded (merged or closed)"
   fi
-  PR_URL="$(open_pr_if_needed "$WS" "$BRANCH")"
 fi
 
+# Recovery only when agent failed AND issue still open AND no merged PR exists
+if [[ -z "$PR_URL" ]] && ! issue_is_closed && [[ -z "$(find_merged_pr)" ]]; then
+  if recover_workspace "$WS"; then
+    log "recovery: tests pass — finishing PR pipeline"
+    cd "$WS"
+    stage_clean_changes
+    if ! git diff --cached --quiet; then
+      git commit -m "Fix issue #$ISSUE (habitat fix recovery)" 2>/dev/null || true
+    fi
+    PR_URL="$(open_pr_if_needed "$WS" "$BRANCH" || true)"
+  fi
+fi
+
+# Final resolution check after agent + optional recovery
+if [[ -z "$PR_URL" ]]; then
+  PR_URL="$(find_merged_pr)"
+fi
 [[ -n "$PR_URL" ]] || die "no PR produced — see /tmp/habitat-fix-${ISSUE}.log"
 
 log "PR: $PR_URL"

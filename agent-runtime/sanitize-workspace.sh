@@ -28,4 +28,10 @@ for p in ws.rglob("*.py"):
         p.write_text(new.rstrip() + "\n", encoding="utf-8")
 PY
 
-git add -A 2>/dev/null || true
+touch .gitignore 2>/dev/null || true
+for pat in .issue-agent-venv/ .venv/ __pycache__/ .pytest_cache/; do
+  grep -qxF "$pat" .gitignore 2>/dev/null || echo "$pat" >> .gitignore
+done
+git reset HEAD .issue-agent-venv .venv 2>/dev/null || true
+rm -rf .issue-agent-venv 2>/dev/null || true
+git add -A -- ':!.issue-agent-venv' ':!.issue-agent-venv/**' ':!.venv' ':!.venv/**' 2>/dev/null || true
