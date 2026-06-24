@@ -146,6 +146,14 @@ export HABITAT_MAX_FIX_RETRIES="${HABITAT_MAX_FIX_RETRIES:-3}"
 log "═══ Habitat Fix (flawless zero-rescue) ═══"
 log "repo=$REPO issue=#$ISSUE"
 
+# Pause airport during fix — avoids aider SIGTERM from competing workers
+if systemctl --user is-active issue-agent-airport.service >/dev/null 2>&1; then
+  log "pausing airport for exclusive aider slot..."
+  systemctl --user stop issue-agent-airport.service 2>/dev/null || true
+  trap 'systemctl --user start issue-agent-airport.service 2>/dev/null || true' EXIT
+fi
+export ISSUE_AGENT_DOC_MODEL="${ISSUE_AGENT_DOC_MODEL:-ollama/qwen2.5-coder:1.5b}"
+
 log "preflight: doctor + feedback"
 HABITAT_DOCTOR_FIX=1 bash "$HABITAT_ROOT/scripts/habitat-doctor.sh" >/dev/null 2>&1 || true
 bash "$HABITAT_ROOT/scripts/flight-recorder-feedback.sh" 2>/dev/null || true

@@ -46,6 +46,12 @@ if command -v gh >/dev/null 2>&1 && gh auth status >/dev/null 2>&1; then
   gh auth setup-git 2>/dev/null || true
 fi
 
+# ── routing.yaml (verify checks ~/.config/agent-habitat/routing.yaml) ────
+if [[ -n "${HABITAT_ROOT:-}" && -f "$HABITAT_ROOT/routing.yaml" ]]; then
+  mkdir -p "$HOME/.config/agent-habitat"
+  ln -sf "$HABITAT_ROOT/routing.yaml" "$HOME/.config/agent-habitat/routing.yaml"
+fi
+
 # ── issue-agent module completeness ──────────────────────────────────────
 if [[ -d "$HOME/issue-agent" ]] && [[ -x "$HABITAT_ROOT/agent-runtime/sync-issue-agent.sh" ]]; then
   bash "$HABITAT_ROOT/agent-runtime/sync-issue-agent.sh" || true
