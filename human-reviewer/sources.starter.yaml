@@ -1,9 +1,9 @@
-# Copy to ~/issue-agent/human-reviewer/sources.yaml on first collect.
+# Copy to ~/issue-agent/human-reviewer/sources.yaml — tiered versatile corpus.
 repos:
-  - Nueramarcos/agent-habitat-demo
   - tinygrad/tinygrad
-  - pytorch/vision
   - numpy/numpy
-  - psf/requests
+  - pydantic/pydantic
+  - rust-lang/rust
+  - Nueramarcos/agent-habitat-demo
 
 bounty_hunters: []

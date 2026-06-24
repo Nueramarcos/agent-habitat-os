@@ -15,6 +15,10 @@ case "$ACTION" in
     log "Archivist: harvesting human PR reviews from GitHub..."
     issue-agent-human-review collect "$@"
     ;;
+  collect-deep)
+    log "Archivist DEEP: versatile complex PR discourse (all tiers)..."
+    issue-agent-human-review collect-deep "$@"
+    ;;
   export)
     log "Librarian: exporting LoRA instruction dataset..."
     issue-agent-human-review export "$@"
@@ -40,7 +44,7 @@ case "$ACTION" in
     issue-agent-human-review stats
     ;;
   *)
-    echo "usage: habitat human-review {collect|export|stats|review|bootstrap|team}"
+    echo "usage: habitat human-review {collect|collect-deep|export|stats|review|bootstrap|team}"
     exit 1
     ;;
 esac

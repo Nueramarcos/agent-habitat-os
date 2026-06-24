@@ -37,7 +37,7 @@ Usage:
   habitat profile show|set <n>  Active routing profile
   habitat demo                  Run demo pytest lane
   habitat fix <repo> <issue>    Zero-rescue: doctor → agent → PR → merge
-  habitat human-review <cmd>    Human Tower corpus: collect|export|stats|bootstrap|team
+  habitat human-review <cmd>    Human Tower corpus: collect-deep|export|stats|bootstrap|team
   habitat ci-setup [owner/repo] Push demo CI workflow (needs workflow scope)
   habitat ci-setup-main       Push main repo CI workflow
   habitat iso [prepare|stage|seed|download|vm|vm-status]
