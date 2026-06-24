@@ -38,6 +38,7 @@ Usage:
   habitat demo                  Run demo pytest lane
   habitat fix <repo> <issue>    Zero-rescue: doctor → agent → PR → merge
   habitat human-review <cmd>    Human Tower: finish|train|collect-deep|stats|team
+  habitat notify-zero           Stop failure emails — quiet GitHub, demo lane only
   habitat ci-setup [owner/repo] Push demo CI workflow (needs workflow scope)
   habitat ci-setup-main       Push main repo CI workflow
   habitat iso [prepare|stage|seed|download|vm|vm-status]
@@ -247,6 +248,7 @@ main() {
     demo)          cmd_demo ;;
     fix)           cmd_fix "$@" ;;
     human-review)  cmd_human_review "$@" ;;
+    notify-zero)   bash "$HABITAT_ROOT/scripts/habitat-notify-zero.sh" ;;
     ci-setup|ci)   cmd_ci_setup "$@" ;;
     ci-auth)       bash "$HABITAT_ROOT/scripts/ci-auth.sh" ;;
     iso)           cmd_iso "$@" ;;
