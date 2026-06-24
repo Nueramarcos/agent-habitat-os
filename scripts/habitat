@@ -31,7 +31,8 @@ habitat — Agent Habitat OS CLI
 Usage:
   habitat install [profile]     Provision workstation (hybrid|minimal|cloud-only)
   habitat init                  First-time wizard (gh, grok, repos.yaml)
-  habitat verify                Health check (16 checks)
+  habitat verify                Health check (18 checks)
+  habitat doctor                Diagnose + auto-repair known issues
   habitat status                Cockpit + issue-agent status
   habitat profile show|set <n>  Active routing profile
   habitat demo                  Run demo pytest lane
@@ -51,6 +52,10 @@ cmd_install() {
 
 cmd_verify() {
   bash "$HABITAT_ROOT/first-boot/verify.sh"
+}
+
+cmd_doctor() {
+  bash "$HABITAT_ROOT/scripts/habitat-doctor.sh"
 }
 
 cmd_status() {
@@ -119,11 +124,11 @@ cmd_iso() {
     download)
       bash "$HABITAT_ROOT/iso/scripts/download-ubuntu-iso.sh"
       ;;
-    vm|qemu|test)
-      bash "$HABITAT_ROOT/iso/scripts/qemu-test.sh"
-      ;;
-    vm-cloud|cloud)
+    vm|qemu|test|vm-cloud|cloud)
       bash "$HABITAT_ROOT/iso/scripts/qemu-cloud.sh"
+      ;;
+    vm-iso|live-iso)
+      bash "$HABITAT_ROOT/iso/scripts/qemu-test.sh"
       ;;
     vm-gui)
       bash "$HABITAT_ROOT/iso/scripts/qemu-gui.sh"
@@ -218,6 +223,7 @@ main() {
     install)       cmd_install "$@" ;;
     init)          cmd_init ;;
     verify|check)  cmd_verify ;;
+    doctor|repair) cmd_doctor ;;
     status)        cmd_status ;;
     profile)       cmd_profile "$@" ;;
     demo)          cmd_demo ;;

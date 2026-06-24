@@ -20,9 +20,7 @@ log "  root:    $HABITAT_ROOT"
 log "  profile: $PROFILE"
 log "  user:    ${USER:-unknown}"
 
-if [[ -x "$HABITAT_ROOT/first-boot/expand-disk.sh" ]]; then
-  bash "$HABITAT_ROOT/first-boot/expand-disk.sh" || true
-fi
+bash "$HABITAT_ROOT/first-boot/ensure.sh" || true
 
 # ── apt base ─────────────────────────────────────────────────────────────
 if command -v apt-get >/dev/null 2>&1; then
@@ -68,7 +66,7 @@ esac
 # ── cockpit (zsh, tools, grok templates) ─────────────────────────────────
 log "Installing cockpit..."
 HABITAT_PROFILE="$PROFILE" HABITAT_INSTALL_GROK="$install_grok" \
-  bash "$HABITAT_ROOT/cockpit/install.sh"
+  bash "$HABITAT_ROOT/cockpit/install.sh" || log "cockpit had warnings — habitat doctor can repair"
 
 # ── agent runtime (issue-agent + ollama) ─────────────────────────────────
 if [[ "$install_issue_agent" == true ]]; then

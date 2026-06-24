@@ -31,8 +31,9 @@ Then:
 habitat init          # wizard: gh, grok, repos.yaml
 grok login            # or export XAI_API_KEY=...
 gh auth login
-habitat verify        # 16 checks
-habitat demo          # 17 pytest (demo repo)
+habitat doctor        # diagnose + auto-repair all known issues
+habitat verify        # 17 health checks
+habitat demo          # 19 pytest (demo repo)
 ```
 
 **Goal:** `habitat verify` green → `issue-agent fix` opens a PR → CI merges in under an hour.
@@ -61,13 +62,16 @@ Boot an agent-ready VM from the Ubuntu 24.04 server ISO:
 ```bash
 habitat iso prepare      # autoinstall seed files
 habitat iso download     # Ubuntu 24.04 server ISO (~3.3 GB)
-habitat iso vm-gui       # GUI install (or habitat iso vm headless)
+habitat iso vm           # unattended cloud-image boot (recommended)
+habitat iso vm-iso       # live server ISO (may need GUI for GRUB)
 habitat iso boot-disk    # boot installed qcow2 (8 GB RAM default)
 habitat iso peek         # host-side health check
 habitat iso ssh          # SSH (user: your installer username)
 ```
 
 Manual GUI install? See [docs/POST-INSTALL.md](docs/POST-INSTALL.md) — run `first-boot/provision.sh` inside the guest.
+
+**Something broken?** `habitat doctor` fixes disk, ownership, issue-agent modules, RAM tier, and gh/git credentials in one pass.
 
 **Proven on QEMU:** 16/16 `habitat verify`, 17/17 `habitat demo`, Ollama 7B + Issue Agent, CI green on GitHub Actions.
 

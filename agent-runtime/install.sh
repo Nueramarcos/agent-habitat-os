@@ -90,6 +90,9 @@ if [[ -f "$INSTALL_DIR/bin/issue-agent" ]]; then
   chmod +x "$HOME/bin/issue-agent"
 fi
 
+bash "$HABITAT_ROOT/agent-runtime/sync-issue-agent.sh" 2>/dev/null || \
+  log "warning: issue-agent module sync incomplete — run: habitat doctor"
+
 # Starter repos.yaml if missing
 if [[ ! -f "$INSTALL_DIR/repos.yaml" ]]; then
   cp "$HABITAT_ROOT/agent-runtime/examples/repos.starter.yaml" "$INSTALL_DIR/repos.yaml"

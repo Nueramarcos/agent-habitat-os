@@ -71,6 +71,11 @@ if [[ -d "$HOME/issue-agent" ]]; then
   else
     log_fail "issue-agent CLI"
   fi
+  if [[ -f "$HOME/issue-agent/personality.py" && -f "$HOME/issue-agent/tower.py" ]]; then
+    log_pass "issue-agent modules"
+  else
+    log_fail "issue-agent modules (run: habitat doctor)"
+  fi
 else
   if [[ "$PROFILE" == "cloud-only" ]]; then
     log_pass "issue-agent skipped (cloud-only profile)"
