@@ -33,6 +33,22 @@ case "$ACTION" in
     log "Mentor: creating customs-reviewer-1.5b base model..."
     bash "$ISSUE_AGENT_ROOT/scripts/create-reviewer-model.sh"
     ;;
+  train)
+    log "Mentor: distilling corpus → customs-reviewer-ft-1.5b..."
+    bash "$ISSUE_AGENT_ROOT/scripts/lora-train-reviewer.sh"
+    ;;
+  sync-hunters)
+    log "Sync bounty-hunters.yaml from corpus..."
+    PYTHONPATH="$ISSUE_AGENT_ROOT" python3 "$ISSUE_AGENT_ROOT/scripts/sync-bounty-hunters.py"
+    ;;
+  finish)
+    log "═══ Human Reviewer finish-all pipeline ═══"
+    issue-agent-human-review export
+    PYTHONPATH="$ISSUE_AGENT_ROOT" python3 "$ISSUE_AGENT_ROOT/scripts/sync-bounty-hunters.py"
+    bash "$ISSUE_AGENT_ROOT/scripts/create-reviewer-model.sh"
+    bash "$ISSUE_AGENT_ROOT/scripts/lora-train-reviewer.sh"
+    issue-agent-human-review stats
+    ;;
   team)
     log "═══ Human Reviewer Team ═══"
     log "1 Archivist  → collect merged PRs + maintainer comments"
@@ -44,7 +60,7 @@ case "$ACTION" in
     issue-agent-human-review stats
     ;;
   *)
-    echo "usage: habitat human-review {collect|collect-deep|export|stats|review|bootstrap|team}"
+    echo "usage: habitat human-review {collect|collect-deep|export|stats|review|bootstrap|train|sync-hunters|finish|team}"
     exit 1
     ;;
 esac

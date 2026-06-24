@@ -11,6 +11,8 @@ repos:
     auto_merge: false
     trigger_label: agent-triage
     tower_enabled: true
+    human_tower_enabled: true
+    human_tower_model: customs-reviewer-ft-1.5b
     habitat:
       stack: python
       bootstrap:
