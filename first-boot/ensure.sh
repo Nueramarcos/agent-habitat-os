@@ -6,7 +6,7 @@ HABITAT_ROOT="${HABITAT_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 log() { printf '\033[38;5;141m[ensure]\033[0m %s\n' "$*"; }
 
 # ── ownership (cloud-init runcmd often leaves ~/bin or ~/.config root-owned) ─
-for d in "$HOME/bin" "$HOME/.config" "$HOME/.local"; do
+for d in "$HOME/bin" "$HOME/.config" "$HOME/.local" "$HOME/.config/agent-habitat"; do
   if [[ -d "$d" ]] && [[ ! -w "$d" ]]; then
     log "Fixing ownership of $d"
     sudo chown -R "$(id -un):$(id -gn)" "$d" 2>/dev/null || true
