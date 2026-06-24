@@ -36,6 +36,7 @@ Usage:
   habitat profile show|set <n>  Active routing profile
   habitat demo                  Run demo pytest lane
   habitat ci-setup [owner/repo] Push demo CI workflow (needs workflow scope)
+  habitat ci-setup-main       Push main repo CI workflow
   habitat iso [prepare|stage|seed|download|vm|vm-status]
   habitat docs                  Open README
 
@@ -97,7 +98,12 @@ cmd_init() {
 }
 
 cmd_ci_setup() {
-  bash "$HABITAT_ROOT/scripts/setup-demo-ci.sh" "${1:-Nueramarcos/agent-habitat-demo}"
+  local target="${1:-Nueramarcos/agent-habitat-demo}"
+  if [[ "$target" == "main" || "$target" == "self" || "$target" == "Nueramarcos/agent-habitat-os" ]]; then
+    bash "$HABITAT_ROOT/scripts/setup-main-ci.sh" "Nueramarcos/agent-habitat-os"
+  else
+    bash "$HABITAT_ROOT/scripts/setup-demo-ci.sh" "$target"
+  fi
 }
 
 cmd_iso() {
