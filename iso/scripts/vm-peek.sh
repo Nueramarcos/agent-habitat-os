@@ -49,7 +49,7 @@ if [[ -n "${HABITAT_VM_PASSWORD:-}" ]]; then
   if command -v sshpass >/dev/null; then
     sshpass -p "$HABITAT_VM_PASSWORD" ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
       -p "$PORT" "${USER}@127.0.0.1" \
-      'export PATH=$HOME/bin:$PATH; whoami; hostname; test -f ~/.habitat-provisioned && echo provisioned; habitat verify 2>&1 | tail -6' || true
+      'export PATH=$HOME/.local/bin:$HOME/bin:$HOME/.grok/bin:$PATH; whoami; hostname; test -f ~/.habitat-provisioned && echo provisioned; habitat verify 2>&1 | tail -6' || true
   elif [[ -x /tmp/sshpeek/bin/python3 ]] || python3 -m venv /tmp/sshpeek 2>/dev/null; then
     [[ -x /tmp/sshpeek/bin/python3 ]] || true
     /tmp/sshpeek/bin/pip install -q paramiko 2>/dev/null || true
@@ -61,7 +61,7 @@ c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 c.connect("127.0.0.1", port=int(os.environ.get("HABITAT_VM_SSH_PORT", 2222)),
           username=os.environ["HABITAT_VM_USER"], password=os.environ["HABITAT_VM_PASSWORD"],
           timeout=15, allow_agent=False, look_for_keys=False)
-_, o, _ = c.exec_command("export PATH=$HOME/bin:$PATH; whoami; hostname; habitat verify 2>&1 | tail -6")
+_, o, _ = c.exec_command("export PATH=$HOME/.local/bin:$HOME/bin:$HOME/.grok/bin:$PATH; whoami; hostname; habitat verify 2>&1 | tail -6")
 print(o.read().decode())
 c.close()
 PY

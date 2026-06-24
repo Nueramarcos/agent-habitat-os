@@ -40,7 +40,18 @@ else
   ok "RAM ${mem_gb}GB"
 fi
 
-# 4. ~/bin ownership
+# 4. Model tier (8GB VMs need 1.5B for aider)
+if [[ -d "$HOME/issue-agent" ]] && [[ "$mem_gb" -lt 10 ]]; then
+  cfg="$HOME/issue-agent/config.local.toml"
+  if [[ -f "$cfg" ]] && grep -q '1.5b' "$cfg" 2>/dev/null; then
+    ok "model tier 1.5B (RAM ${mem_gb}GB)"
+  else
+    warn "RAM ${mem_gb}GB — issue-agent should use 1.5B (7B OOMs under aider)"
+    [[ "$FIX" == 1 ]] && bash "$HABITAT_ROOT/agent-runtime/configure-model-tier.sh" 2>/dev/null && fix "configured 1.5B model tier"
+  fi
+fi
+
+# 5. ~/bin ownership
 if [[ -d "$HOME/bin" ]] && [[ ! -w "$HOME/bin" ]]; then
   warn "~/bin not writable (often root-owned after cloud-init)"
   [[ "$FIX" == 1 ]] && sudo chown -R "$(id -un):$(id -gn)" "$HOME/bin" && fix "chown ~/bin"
@@ -48,7 +59,7 @@ else
   ok "~/bin writable"
 fi
 
-# 5. issue-agent modules
+# 6. issue-agent modules
 if [[ -d "$HOME/issue-agent" ]]; then
   for mod in personality.py tower.py; do
     if [[ ! -f "$HOME/issue-agent/$mod" ]]; then
@@ -63,7 +74,7 @@ else
   [[ "$FIX" == 1 ]] && fix "run: habitat install"
 fi
 
-# 6. ollama
+# 7. ollama
 if command -v ollama >/dev/null; then
   if curl -sf "${OLLAMA_HOST:-http://127.0.0.1:11434}/api/tags" >/dev/null 2>&1; then
     ok "ollama API"
@@ -75,7 +86,7 @@ else
   warn "ollama not installed"
 fi
 
-# 7. gh auth
+# 8. gh auth
 if command -v gh >/dev/null; then
   if gh auth status >/dev/null 2>&1; then
     ok "gh authenticated"
@@ -87,7 +98,7 @@ if command -v gh >/dev/null; then
   fi
 fi
 
-# 8. Run ensure + verify
+# 9. Run ensure + verify
 if [[ "$FIX" == 1 ]]; then
   bash "$HABITAT_ROOT/first-boot/ensure.sh" 2>/dev/null || true
 fi

@@ -72,6 +72,17 @@ HABITAT_PROFILE="$PROFILE" HABITAT_INSTALL_GROK="$install_grok" \
 if [[ "$install_issue_agent" == true ]]; then
   log "Installing agent runtime..."
   HABITAT_PROFILE="$PROFILE" bash "$HABITAT_ROOT/agent-runtime/install.sh"
+  if [[ -x "$HABITAT_ROOT/agent-runtime/configure-model-tier.sh" ]]; then
+    bash "$HABITAT_ROOT/agent-runtime/configure-model-tier.sh" || true
+  fi
+fi
+
+# ── git identity (VM pushes / agent commits) ─────────────────────────────
+if ! git config --global user.email >/dev/null 2>&1; then
+  git config --global user.email "${HABITAT_GIT_EMAIL:-$(id -un)@$(hostname -s 2>/dev/null || echo local).local}"
+fi
+if ! git config --global user.name >/dev/null 2>&1; then
+  git config --global user.name "${HABITAT_GIT_NAME:-Agent Habitat ($(id -un))}"
 fi
 
 # ── habitat CLI ──────────────────────────────────────────────────────────

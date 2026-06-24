@@ -49,9 +49,19 @@ else:
 
 path = 'export PATH="$HOME/.local/bin:$HOME/bin:$HOME/.grok/bin:$PATH"'
 
-def run(cmd, timeout=600):
+def run(cmd, timeout=600, stream=False):
     print(f"$ {cmd[:80]}")
     _, o, e = c.exec_command(cmd, timeout=timeout)
+    if stream:
+        while not o.channel.exit_status_ready():
+            chunk = o.readline()
+            if chunk:
+                print(chunk, end="")
+            time.sleep(0.5)
+        err = e.read().decode()
+        if err:
+            print(err)
+        return ""
     out = o.read().decode() + e.read().decode()
     print(out)
     return out
@@ -61,6 +71,6 @@ run("gh auth login --with-token 2>/dev/null <<'TOK'\n" + gh_token + "\nTOK")
 run(path + '; gh auth status 2>&1 | head -4')
 run(path + '; habitat init 2>&1')
 run(path + '; habitat verify 2>&1 | tail -10')
-run(path + '; issue-agent fix Nueramarcos/agent-habitat-demo ' + issue, timeout=900)
+run(path + '; issue-agent fix Nueramarcos/agent-habitat-demo ' + issue, timeout=1800, stream=True)
 c.close()
 PY

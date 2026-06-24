@@ -33,12 +33,12 @@ grok login            # or export XAI_API_KEY=...
 gh auth login
 habitat doctor        # diagnose + auto-repair all known issues
 habitat verify        # 17 health checks
-habitat demo          # 19 pytest (demo repo)
+habitat demo          # 21 pytest (demo repo)
 ```
 
 **Goal:** `habitat verify` green → `issue-agent fix` opens a PR → CI merges in under an hour.
 
-## Agent demo chain (6 rounds — all merged)
+## Agent demo chain (8 rounds — all merged)
 
 | Round | Bug | Issue | PR |
 |-------|-----|-------|-----|
@@ -48,6 +48,8 @@ habitat demo          # 19 pytest (demo repo)
 | 4 | `mode()` wrong frequency | [#7](https://github.com/Nueramarcos/agent-habitat-demo/issues/7) | [#8](https://github.com/Nueramarcos/agent-habitat-demo/pull/8) |
 | 5 | `variance()` sample vs population | — | [main](https://github.com/Nueramarcos/agent-habitat-demo) |
 | 6 | `stddev()` no sqrt | [#9](https://github.com/Nueramarcos/agent-habitat-demo/issues/9) | [#10](https://github.com/Nueramarcos/agent-habitat-demo/pull/10) |
+| 7 | `geometric_mean()` arithmetic | [#11](https://github.com/Nueramarcos/agent-habitat-demo/issues/11) | [#12](https://github.com/Nueramarcos/agent-habitat-demo/pull/12) |
+| 8 | `harmonic_mean()` arithmetic | [#13](https://github.com/Nueramarcos/agent-habitat-demo/issues/13) | [#14](https://github.com/Nueramarcos/agent-habitat-demo/pull/14) (cloud VM) |
 
 Run the next round:
 
@@ -73,7 +75,7 @@ Manual GUI install? See [docs/POST-INSTALL.md](docs/POST-INSTALL.md) — run `fi
 
 **Something broken?** `habitat doctor` fixes disk, ownership, issue-agent modules, RAM tier, and gh/git credentials in one pass.
 
-**Proven on QEMU:** 16/16 `habitat verify`, 17/17 `habitat demo`, Ollama 7B + Issue Agent, CI green on GitHub Actions.
+**Proven on QEMU:** 17/17 `habitat verify` (host + cloud VM), 21/21 `habitat demo`, Ollama 7B + Issue Agent, CI green on GitHub Actions.
 
 ## Profiles
 

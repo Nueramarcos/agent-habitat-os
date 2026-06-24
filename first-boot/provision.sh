@@ -18,6 +18,10 @@ bash "$REPO/first-boot/ensure.sh" || true
 
 mkdir -p "$HABITAT_HOME/.config/cockpit" "$HABITAT_HOME/.config/agent-habitat" "$HABITAT_HOME/bin"
 chmod 700 "$HABITAT_HOME/.config/cockpit"
+
+# Git identity for agent commits from VM
+git config --global user.email "${HABITAT_GIT_EMAIL:-$HABITAT_USER@$(hostname -s 2>/dev/null || echo agent-habitat).local}" 2>/dev/null || true
+git config --global user.name "${HABITAT_GIT_NAME:-Agent Habitat ($HABITAT_USER)}" 2>/dev/null || true
 touch "$HABITAT_HOME/.config/cockpit/secrets.env"
 chmod 600 "$HABITAT_HOME/.config/cockpit/secrets.env"
 echo "$PROFILE" > "$HABITAT_HOME/.config/agent-habitat/profile"
