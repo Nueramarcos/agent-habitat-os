@@ -36,34 +36,7 @@ if ! curl -sf "${OLLAMA_HOST:-http://127.0.0.1:11434}/api/tags" >/dev/null 2>&1;
   sleep 2
 fi
 
-# Pull models per profile
-pull_model() {
-  local m="$1"
-  if ollama list 2>/dev/null | grep -qF "$m"; then
-    log "model present: $m"
-    return 0
-  fi
-  log "pulling $m..."
-  if ollama pull "$m"; then
-    return 0
-  fi
-  log "warning: failed to pull $m — retry later: ollama pull $m"
-  return 0
-}
-
-case "$PROFILE" in
-  minimal|hybrid)
-    if [[ "${HABITAT_LIGHT:-}" == 1 ]]; then
-      pull_model "qwen2.5-coder:1.5b"
-    else
-      pull_model "qwen2.5-coder:7b"
-      pull_model "qwen2.5-coder:1.5b"
-      pull_model "nomic-embed-text"
-    fi
-    ;;
-esac
-
-# Issue Agent
+# Issue Agent first (CLI ready while models pull in background)
 if [[ -d "$INSTALL_DIR/.git" ]]; then
   log "Updating issue-agent at $INSTALL_DIR"
   git -C "$INSTALL_DIR" pull --ff-only 2>/dev/null || true
@@ -105,6 +78,33 @@ fi
 
 export ISSUE_AGENT_ROOT="$INSTALL_DIR"
 export ISSUE_AGENT_AIDER="$VENV_DIR/bin/aider"
+
+# Pull models per profile (after issue-agent clone — firstboot verify can pass CLI earlier)
+pull_model() {
+  local m="$1"
+  if ollama list 2>/dev/null | grep -qF "$m"; then
+    log "model present: $m"
+    return 0
+  fi
+  log "pulling $m..."
+  if ollama pull "$m"; then
+    return 0
+  fi
+  log "warning: failed to pull $m — retry later: ollama pull $m"
+  return 0
+}
+
+case "$PROFILE" in
+  minimal|hybrid)
+    if [[ "${HABITAT_LIGHT:-}" == 1 ]]; then
+      pull_model "qwen2.5-coder:1.5b"
+    else
+      pull_model "qwen2.5-coder:7b"
+      pull_model "qwen2.5-coder:1.5b"
+      pull_model "nomic-embed-text"
+    fi
+    ;;
+esac
 
 log "agent runtime ready"
 log "  issue-agent status"

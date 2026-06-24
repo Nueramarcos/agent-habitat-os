@@ -41,6 +41,7 @@ write_files:
       Type=oneshot
       User=ubuntu
       WorkingDirectory=/home/ubuntu/agent-habitat-os
+      Environment=HABITAT_LIGHT=1
       ExecStart=/bin/bash /home/ubuntu/agent-habitat-os/first-boot/install.sh
       ExecStartPost=/usr/bin/touch /home/ubuntu/.habitat-provisioned
       RemainAfterExit=yes
