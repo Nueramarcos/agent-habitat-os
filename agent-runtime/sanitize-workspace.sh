@@ -11,4 +11,21 @@ if [[ -f .gitignore ]] && head -1 .gitignore | grep -qE '^[^#[:space:]]'; then
     git checkout HEAD -- .gitignore 2>/dev/null || rm -f .gitignore
   fi
 fi
+# Strip aider "FILES_CHANGED:" trailer blocks pasted into Python sources
+python3 <<'PY'
+import pathlib, re
+ws = pathlib.Path(".")
+pat = re.compile(r"\n+FILES_CHANGED:.*\Z", re.DOTALL)
+for p in ws.rglob("*.py"):
+    if any(part in {".venv", "__pycache__", ".git"} for part in p.parts):
+        continue
+    try:
+        text = p.read_text(encoding="utf-8")
+    except OSError:
+        continue
+    new = pat.sub("\n", text)
+    if new != text:
+        p.write_text(new.rstrip() + "\n", encoding="utf-8")
+PY
+
 git add -A 2>/dev/null || true
