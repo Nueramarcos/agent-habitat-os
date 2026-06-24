@@ -67,7 +67,9 @@ cat <<EOF
 
 Failed — refresh GitHub CLI with workflow scope, then retry:
 
-  gh auth refresh -h github.com -s workflow,repo
+  habitat ci-auth
+  # or manually:
+  env -u GITHUB_TOKEN gh auth refresh -h github.com -s workflow,repo
   habitat ci-setup
 
 Or add a fine-grained PAT with Actions: Read and write, then:
