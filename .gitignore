@@ -1,6 +1,8 @@
 *.pyc
 __pycache__/
 .pytest_cache/
+.venv/
+demo/**/.venv/
 .env
 *.iso
 iso/build/

@@ -2,7 +2,25 @@
 # Agent Habitat OS — main CLI
 set -euo pipefail
 
-HABITAT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+habitat_resolve_root() {
+  if [[ -n "${HABITAT_ROOT:-}" && -f "$HABITAT_ROOT/first-boot/install.sh" ]]; then
+    printf '%s' "$HABITAT_ROOT"
+    return
+  fi
+  if [[ -f "$HOME/agent-habitat-os/first-boot/install.sh" ]]; then
+    printf '%s' "$HOME/agent-habitat-os"
+    return
+  fi
+  local script
+  script="$(readlink -f "${BASH_SOURCE[0]}")"
+  if [[ -f "$(dirname "$script")/../first-boot/install.sh" ]]; then
+    cd "$(dirname "$script")/.." && pwd
+    return
+  fi
+  die "cannot find agent-habitat-os — clone to ~/agent-habitat-os or set HABITAT_ROOT"
+}
+
+HABITAT_ROOT="$(habitat_resolve_root)"
 CONFIG_DIR="$HOME/.config/agent-habitat"
 PROFILE_FILE="$CONFIG_DIR/profile"
 
@@ -77,8 +95,13 @@ cmd_demo() {
   echo "Demo repo: $demo"
   echo ""
   cd "$demo"
+  local venv="$demo/.venv"
+  if [[ ! -x "$venv/bin/pytest" ]]; then
+    python3 -m venv "$venv"
+    "$venv/bin/pip" install -q pytest
+  fi
   echo "Running tests (expected to fail before fix)..."
-  if python3 -m pytest -q 2>&1; then
+  if "$venv/bin/python" -m pytest -q 2>&1; then
     echo ""
     echo "All tests pass — demo already fixed!"
   else
