@@ -5,14 +5,16 @@ repos:
     topics: [python, agents, demo]
     ci_workflows: [CI]
     test_command: "python3 -m pip install -q pytest && python3 -m pytest -q"
-    wait_for_checks: false
+    wait_for_checks: true
     park_minutes: 5
     draft_pr: false
-    auto_merge: false
+    auto_merge: true
     trigger_label: agent-triage
     tower_enabled: true
     human_tower_enabled: true
     human_tower_model: customs-reviewer-ft-1.5b
+    plan_enabled: true
+    max_fix_retries: 3
     habitat:
       stack: python
       bootstrap:

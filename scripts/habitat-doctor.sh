@@ -103,6 +103,22 @@ if [[ "$FIX" == 1 ]]; then
   bash "$HABITAT_ROOT/first-boot/ensure.sh" 2>/dev/null || true
 fi
 
+# Flawless autonomy checks
+if grep -q 'ISSUE_AGENT_GITHUB_QUIET=1' "$HOME/.config/cockpit/secrets.env" 2>/dev/null; then
+  ok "notify-zero: GitHub quiet on failure"
+else
+  warn "notify-zero off — run: habitat notify-zero"
+fi
+if ollama list 2>/dev/null | grep -q 'customs-reviewer-ft'; then
+  ok "Human Tower model ready"
+else
+  warn "Human Tower model missing — run: habitat human-review train"
+fi
+if [[ -f "$HOME/issue-agent/flight-recorder/human-reviews.jsonl" ]]; then
+  n="$(wc -l < "$HOME/issue-agent/flight-recorder/human-reviews.jsonl")"
+  [[ "$n" -ge 200 ]] && ok "Human Reviewer corpus: ${n}" || warn "corpus ${n}/200"
+fi
+
 echo ""
 if [[ "$ISSUES" -eq 0 ]]; then
   echo "Doctor: all checks passed"

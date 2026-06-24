@@ -139,8 +139,10 @@ wait_and_merge() {
 
 export PATH="$HOME/.local/bin:$HOME/bin:$HOME/.grok/bin:$PATH"
 export HABITAT_ROOT
+export ISSUE_AGENT_GITHUB_QUIET="${ISSUE_AGENT_GITHUB_QUIET:-1}"
+export HABITAT_MAX_FIX_RETRIES="${HABITAT_MAX_FIX_RETRIES:-3}"
 
-log "═══ Habitat Fix (zero-rescue) ═══"
+log "═══ Habitat Fix (flawless zero-rescue) ═══"
 log "repo=$REPO issue=#$ISSUE"
 
 log "preflight: doctor + feedback"
@@ -162,7 +164,11 @@ if issue_is_closed; then
   fi
 fi
 
-log "running issue-agent fix..."
+log "phase: plan (local — no GitHub)"
+bash "$HABITAT_ROOT/scripts/habitat-plan.sh" "$REPO" "$ISSUE" 2>&1 | tee "/tmp/habitat-plan-${ISSUE}.log" || true
+export HABITAT_PLAN_PATH="$WS/.habitat-plan.json"
+
+log "phase: fix (plan → aider → test → Tower → Human Tower → retry up to ${HABITAT_MAX_FIX_RETRIES}x)"
 set +e
 issue-agent fix "$REPO" "$ISSUE" 2>&1 | tee "/tmp/habitat-fix-${ISSUE}.log"
 AGENT_RC=${PIPESTATUS[0]}

@@ -36,7 +36,9 @@ Usage:
   habitat status                Cockpit + issue-agent status
   habitat profile show|set <n>  Active routing profile
   habitat demo                  Run demo pytest lane
-  habitat fix <repo> <issue>    Zero-rescue: doctor → agent → PR → merge
+  habitat plan <repo> <issue>   Repo brief + solution plan (local only)
+  habitat fix <repo> <issue>    Flawless: plan → fix → retry → merge
+  habitat flawless              One-shot setup + verify flawless autonomy
   habitat human-review <cmd>    Human Tower: finish|train|collect-deep|stats|team
   habitat notify-zero           Stop failure emails — quiet GitHub, demo lane only
   habitat ci-setup [owner/repo] Push demo CI workflow (needs workflow scope)
@@ -198,8 +200,16 @@ cmd_iso() {
   esac
 }
 
+cmd_plan() {
+  bash "$HABITAT_ROOT/scripts/habitat-plan.sh" "$@"
+}
+
 cmd_fix() {
   bash "$HABITAT_ROOT/scripts/habitat-fix.sh" "$@"
+}
+
+cmd_flawless() {
+  bash "$HABITAT_ROOT/scripts/habitat-flawless.sh" "$@"
 }
 
 cmd_human_review() {
@@ -246,7 +256,9 @@ main() {
     status)        cmd_status ;;
     profile)       cmd_profile "$@" ;;
     demo)          cmd_demo ;;
+    plan)          cmd_plan "$@" ;;
     fix)           cmd_fix "$@" ;;
+    flawless)      cmd_flawless ;;
     human-review)  cmd_human_review "$@" ;;
     notify-zero)   bash "$HABITAT_ROOT/scripts/habitat-notify-zero.sh" ;;
     ci-setup|ci)   cmd_ci_setup "$@" ;;
