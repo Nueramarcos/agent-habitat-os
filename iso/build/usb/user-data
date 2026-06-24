@@ -1,5 +1,5 @@
 #cloud-config
-# Agent Habitat OS — Ubuntu 24.04 autoinstall (QEMU / USB / Ventoy)
+# Agent Habitat OS — Ubuntu 24.04 autoinstall
 
 autoinstall:
   version: 1
@@ -39,5 +39,27 @@ autoinstall:
     - curtin in-target -- bash -c 'echo hybrid > /home/ubuntu/.config/agent-habitat/profile'
     - curtin in-target -- git clone https://github.com/Nueramarcos/agent-habitat-os.git /home/ubuntu/agent-habitat-os
     - curtin in-target -- chown -R ubuntu:ubuntu /home/ubuntu/agent-habitat-os /home/ubuntu/.config
-    - curtin in-target -- runuser -u ubuntu -- bash /home/ubuntu/agent-habitat-os/first-boot/install.sh
     - curtin in-target -- install -m 755 /home/ubuntu/agent-habitat-os/scripts/habitat /home/ubuntu/bin/habitat
+    - curtin in-target -- bash -c 'cat > /etc/systemd/system/agent-habitat-firstboot.service <<UNIT
+[Unit]
+Description=Agent Habitat first-boot provisioning
+After=network-online.target
+Wants=network-online.target
+ConditionPathExists=!/home/ubuntu/.habitat-provisioned
+
+[Service]
+Type=oneshot
+User=ubuntu
+WorkingDirectory=/home/ubuntu/agent-habitat-os
+ExecStart=/bin/bash /home/ubuntu/agent-habitat-os/first-boot/install.sh
+ExecStartPost=/usr/bin/touch /home/ubuntu/.habitat-provisioned
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+UNIT'
+    - curtin in-target -- systemctl enable agent-habitat-firstboot.service
+
+# First real boot: network available, then Ollama/Grok/issue-agent install
+package_update: true
+package_upgrade: false

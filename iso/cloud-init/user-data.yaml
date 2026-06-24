@@ -39,6 +39,7 @@ autoinstall:
     - curtin in-target -- bash -c 'echo hybrid > /home/ubuntu/.config/agent-habitat/profile'
     - curtin in-target -- git clone https://github.com/Nueramarcos/agent-habitat-os.git /home/ubuntu/agent-habitat-os
     - curtin in-target -- chown -R ubuntu:ubuntu /home/ubuntu/agent-habitat-os /home/ubuntu/.config
+    - curtin in-target -- bash -c 'echo ubuntu:ubuntu | chpasswd'
     - curtin in-target -- install -m 755 /home/ubuntu/agent-habitat-os/scripts/habitat /home/ubuntu/bin/habitat
     - curtin in-target -- bash -c 'cat > /etc/systemd/system/agent-habitat-firstboot.service <<UNIT
 [Unit]
