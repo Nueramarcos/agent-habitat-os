@@ -23,7 +23,7 @@ cd agent-habitat-os
 ./first-boot/install.sh
 ```
 
-**Live repos:** [agent-habitat-os](https://github.com/Nueramarcos/agent-habitat-os) · [agent-habitat-demo](https://github.com/Nueramarcos/agent-habitat-demo) · [issue #1](https://github.com/Nueramarcos/agent-habitat-demo/issues/1)
+**Live repos:** [agent-habitat-os](https://github.com/Nueramarcos/agent-habitat-os) · [agent-habitat-demo](https://github.com/Nueramarcos/agent-habitat-demo) · [demo PR #2](https://github.com/Nueramarcos/agent-habitat-demo/pull/2) (agent-fixed, merged)
 
 Then:
 
