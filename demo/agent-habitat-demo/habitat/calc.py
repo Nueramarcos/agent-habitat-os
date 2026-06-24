@@ -59,4 +59,12 @@ def variance(values: list[float]) -> float:
     if not values:
         return 0.0
     m = mean(values)
+    # BUG: divides by n-1 (sample variance) instead of n (population)
     return sum((x - m) ** 2 for x in values) / len(values)
+
+
+def stddev(values: list[float]) -> float:
+    """Population standard deviation; empty list returns 0.0."""
+    if not values:
+        return 0.0
+    return variance(values) ** 0.5

@@ -23,23 +23,53 @@ cd agent-habitat-os
 ./first-boot/install.sh
 ```
 
-**Live repos:** [agent-habitat-os](https://github.com/Nueramarcos/agent-habitat-os) · [agent-habitat-demo](https://github.com/Nueramarcos/agent-habitat-demo) · [PR #6 merged](https://github.com/Nueramarcos/agent-habitat-demo/pull/6) (round 3 median)
+**Live repos:** [agent-habitat-os](https://github.com/Nueramarcos/agent-habitat-os) · [agent-habitat-demo](https://github.com/Nueramarcos/agent-habitat-demo)
 
 Then:
 
 ```bash
-habitat init        # wizard: gh, grok, repos.yaml
-grok login          # or export XAI_API_KEY=...
+habitat init          # wizard: gh, grok, repos.yaml
+grok login            # or export XAI_API_KEY=...
 gh auth login
-habitat verify
-habitat demo        # round 2: mean() bug — issue #3
-habitat iso prepare   # USB autoinstall files
-habitat iso download  # Ubuntu 24.04 server ISO (~3.3 GB)
-habitat iso vm        # QEMU test (fw_cfg NoCloud)
-habitat iso vm-status # check install progress
+habitat verify        # 16 checks
+habitat demo          # 17 pytest (demo repo)
 ```
 
-**Goal:** `habitat verify` green → `issue-agent demo --dry-run` passes → first agent-merge in under an hour.
+**Goal:** `habitat verify` green → `issue-agent fix` opens a PR → CI merges in under an hour.
+
+## Agent demo chain (6 rounds — all merged)
+
+| Round | Bug | Issue | PR |
+|-------|-----|-------|-----|
+| 1 | calc regressions | [#1](https://github.com/Nueramarcos/agent-habitat-demo/issues/1) | [#2](https://github.com/Nueramarcos/agent-habitat-demo/pull/2) |
+| 2 | `mean()` floor division | [#3](https://github.com/Nueramarcos/agent-habitat-demo/issues/3) | [#4](https://github.com/Nueramarcos/agent-habitat-demo/pull/4) |
+| 3 | `median()` even-length | [#5](https://github.com/Nueramarcos/agent-habitat-demo/issues/5) | [#6](https://github.com/Nueramarcos/agent-habitat-demo/pull/6) |
+| 4 | `mode()` wrong frequency | [#7](https://github.com/Nueramarcos/agent-habitat-demo/issues/7) | [#8](https://github.com/Nueramarcos/agent-habitat-demo/pull/8) |
+| 5 | `variance()` sample vs population | — | [main](https://github.com/Nueramarcos/agent-habitat-demo) |
+| 6 | `stddev()` no sqrt | [#9](https://github.com/Nueramarcos/agent-habitat-demo/issues/9) | [#10](https://github.com/Nueramarcos/agent-habitat-demo/pull/10) |
+
+Run the next round:
+
+```bash
+issue-agent fix Nueramarcos/agent-habitat-demo <issue>
+```
+
+## QEMU VM (tested)
+
+Boot an agent-ready VM from the Ubuntu 24.04 server ISO:
+
+```bash
+habitat iso prepare      # autoinstall seed files
+habitat iso download     # Ubuntu 24.04 server ISO (~3.3 GB)
+habitat iso vm-gui       # GUI install (or habitat iso vm headless)
+habitat iso boot-disk    # boot installed qcow2 (8 GB RAM default)
+habitat iso peek         # host-side health check
+habitat iso ssh          # SSH (user: your installer username)
+```
+
+Manual GUI install? See [docs/POST-INSTALL.md](docs/POST-INSTALL.md) — run `first-boot/provision.sh` inside the guest.
+
+**Proven on QEMU:** 16/16 `habitat verify`, 17/17 `habitat demo`, Ollama 7B + Issue Agent, CI green on GitHub Actions.
 
 ## Profiles
 
@@ -61,22 +91,26 @@ Routing rules live in [`routing.yaml`](routing.yaml).
 | Path | Purpose |
 |------|---------|
 | [`first-boot/install.sh`](first-boot/install.sh) | One-shot workstation setup |
+| [`first-boot/provision.sh`](first-boot/provision.sh) | Manual/GUI install provisioning |
 | [`cockpit/`](cockpit/) | zsh, tools, Grok config, AGENTS.md templates |
 | [`agent-runtime/`](agent-runtime/) | Issue Agent install + starter `repos.yaml` |
 | [`flight-recorder/`](flight-recorder/) | JSONL audit schema |
-| [`demo/agent-habitat-demo/`](demo/agent-habitat-demo/) | Intentional bugs for first agent-fix |
-| [`iso/`](iso/) | Cubic ISO build guide + package list |
+| [`demo/agent-habitat-demo/`](demo/agent-habitat-demo/) | Intentional bugs for agent-fix demos |
+| [`iso/`](iso/) | Autoinstall, QEMU helpers, USB seed |
+| [`docs/POST-INSTALL.md`](docs/POST-INSTALL.md) | VM post-install checklist |
 
-## Demo repo
+## CI
 
-The bundled demo has three deliberate bugs. Boot the stack, then:
+Both repos run GitHub Actions on push:
+
+- **agent-habitat-os** — smoke checks + demo pytest (17 tests)
+- **agent-habitat-demo** — demo pytest
+
+Enable workflow scope once, then:
 
 ```bash
-cd demo/agent-habitat-demo
-python3 -m pytest   # fails — that's the point
-grok -p "Fix the failing tests in habitat/calc.py"
-# or autonomous:
-issue-agent fix Nueramarcos/agent-habitat-demo 1
+env -u GITHUB_TOKEN gh auth refresh -h github.com -s workflow,repo
+habitat ci-setup    # pushes demo CI if missing
 ```
 
 ## ISO build (optional)
@@ -102,6 +136,7 @@ For a bootable live image, see [`iso/README.md`](iso/README.md). The ISO wraps t
 | `ISSUE_AGENT_ROOT` | `~/issue-agent` | Agent runtime |
 | `OLLAMA_HOST` | `http://127.0.0.1:11434` | Local inference |
 | `XAI_API_KEY` | — | Grok cloud auth (optional in minimal) |
+| `QEMU_MEM` | `8192` | VM RAM for `habitat iso boot-disk` |
 
 ## Related projects
 

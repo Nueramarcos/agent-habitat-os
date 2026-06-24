@@ -1,4 +1,4 @@
-from habitat.calc import clamp, is_palindrome, mean, median, mode, sum_range, variance
+from habitat.calc import clamp, is_palindrome, mean, median, mode, stddev, sum_range, variance
 
 
 def test_sum_range_basic():
@@ -64,3 +64,11 @@ def test_variance():
 
 def test_variance_empty():
     assert variance([]) == 0.0
+
+
+def test_stddev():
+    assert stddev([2.0, 4.0, 4.0, 4.0, 5.0, 5.0, 7.0, 9.0]) == 2.0
+
+
+def test_stddev_empty():
+    assert stddev([]) == 0.0
