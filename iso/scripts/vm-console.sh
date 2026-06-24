@@ -12,8 +12,8 @@ DISK="$BUILD/agent-habitat-test.qcow2"
 sleep 2
 
 echo "==> Booting installed system with console"
-echo "    login: ubuntu"
-echo "    try password: ubuntu (or what you set in installer)"
+echo "    login: nueramarcos (or ubuntu for autoinstall)"
+echo "    password: what you set in GUI installer"
 echo "    then: sudo journalctl -u agent-habitat-firstboot -f"
 
 exec qemu-system-x86_64 \

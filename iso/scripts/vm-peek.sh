@@ -5,7 +5,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 DISK="$ROOT/iso/build/agent-habitat-test.qcow2"
 PORT="${HABITAT_VM_SSH_PORT:-2222}"
-USER="${HABITAT_VM_USER:-nuermarcos}"
+USER="${HABITAT_VM_USER:-nueramarcos}"
 
 echo "═══ Agent Habitat VM peek ═══"
 echo ""
@@ -43,12 +43,29 @@ else
 fi
 
 # Remote verify (needs password or key)
-if [[ -n "${HABITAT_VM_PASSWORD:-}" ]] && command -v sshpass >/dev/null; then
+if [[ -n "${HABITAT_VM_PASSWORD:-}" ]]; then
   echo ""
-  echo "── Remote checks (sshpass) ──"
-  sshpass -p "$HABITAT_VM_PASSWORD" ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-    -p "$PORT" "${USER}@127.0.0.1" \
-    'whoami; hostname; test -f ~/.habitat-provisioned && echo provisioned; habitat verify 2>&1 | tail -5' || true
+  echo "── Remote checks ──"
+  if command -v sshpass >/dev/null; then
+    sshpass -p "$HABITAT_VM_PASSWORD" ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+      -p "$PORT" "${USER}@127.0.0.1" \
+      'export PATH=$HOME/bin:$PATH; whoami; hostname; test -f ~/.habitat-provisioned && echo provisioned; habitat verify 2>&1 | tail -6' || true
+  elif [[ -x /tmp/sshpeek/bin/python3 ]] || python3 -m venv /tmp/sshpeek 2>/dev/null; then
+    [[ -x /tmp/sshpeek/bin/python3 ]] || true
+    /tmp/sshpeek/bin/pip install -q paramiko 2>/dev/null || true
+    HABITAT_VM_PASSWORD="$HABITAT_VM_PASSWORD" HABITAT_VM_USER="$USER" HABITAT_VM_SSH_PORT="$PORT" \
+      /tmp/sshpeek/bin/python3 - <<'PY' || true
+import os, paramiko
+c = paramiko.SSHClient()
+c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+c.connect("127.0.0.1", port=int(os.environ.get("HABITAT_VM_SSH_PORT", 2222)),
+          username=os.environ["HABITAT_VM_USER"], password=os.environ["HABITAT_VM_PASSWORD"],
+          timeout=15, allow_agent=False, look_for_keys=False)
+_, o, _ = c.exec_command("export PATH=$HOME/bin:$PATH; whoami; hostname; habitat verify 2>&1 | tail -6")
+print(o.read().decode())
+c.close()
+PY
+  fi
 elif ssh -o BatchMode=yes -o ConnectTimeout=3 -p "$PORT" "${USER}@127.0.0.1" true 2>/dev/null; then
   echo "SSH:    key auth works as $USER"
 else

@@ -3,7 +3,7 @@
 set -euo pipefail
 
 PORT="${HABITAT_VM_SSH_PORT:-2222}"
-USER="${HABITAT_VM_USER:-nuermarcos}"
+USER="${HABITAT_VM_USER:-nueramarcos}"
 HOST="${HABITAT_VM_HOST:-127.0.0.1}"
 
 echo "Connecting ${USER}@${HOST}:${PORT} (GUI install password)"
