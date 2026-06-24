@@ -1,4 +1,4 @@
-from habitat.calc import clamp, is_palindrome, sum_range
+from habitat.calc import clamp, is_palindrome, mean, sum_range
 
 
 def test_sum_range_basic():
@@ -23,3 +23,12 @@ def test_clamp():
 
 def test_clamp_inverted_bounds():
     assert clamp(5, 10, 0) == 5
+
+
+def test_mean():
+    assert mean([1, 2, 3, 4]) == 2.5
+    assert mean([10, 20]) == 15.0
+
+
+def test_mean_empty():
+    assert mean([]) == 0.0

@@ -1,10 +1,27 @@
 # Agent Habitat OS — ISO Build
 
-Bootable Ubuntu 24.04 live image with Agent Habitat first-boot baked in.
+Bootable Ubuntu 24.04 with Agent Habitat first-boot baked in.
 
-## Approach
+## Fast path — USB autoinstall (no Cubic)
 
-We use **[Cubic](https://github.com/PJ-Singh-001/Cubic)** (Custom Ubuntu ISO Creator) — GUI tool that customizes the Ubuntu live ISO. Alternative: `live-build` or NixOS for fully declarative images (future).
+```bash
+habitat iso prepare
+# → iso/build/usb/user-data + meta-data (+ cidata.img if mtools present)
+```
+
+Copy `user-data` + `meta-data` to a Ventoy USB alongside Ubuntu 24.04 ISO, or create a seed ISO:
+
+```bash
+sudo apt install cloud-image-utils
+cloud-localds iso/build/usb/seed.iso \
+  iso/build/usb/user-data iso/build/usb/meta-data
+```
+
+Boot VM with Ubuntu ISO + `seed.iso` as second drive → unattended install → `habitat init` on first login.
+
+## Approach B — Cubic custom ISO
+
+**[Cubic](https://github.com/PJ-Singh-001/Cubic)** — GUI custom Ubuntu ISO. Use when you need a single self-contained image.
 
 ## Prerequisites
 
@@ -60,7 +77,8 @@ export HABITAT_PROFILE=minimal
 Helper that stages the repo and prints Cubic instructions. Full unattended ISO generation requires Cubic CLI or live-build — v0 documents the manual path.
 
 ```bash
-./iso/build-iso.sh
+habitat iso stage    # or ./iso/build-iso.sh
+habitat iso prepare  # USB autoinstall files
 ```
 
 ## VM test checklist

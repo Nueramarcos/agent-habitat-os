@@ -1,0 +1,51 @@
+#cloud-config
+# Agent Habitat OS — Ubuntu 24.04 autoinstall
+# Flash with iso/prepare-usb.sh → see iso/README.md
+
+autoinstall:
+  version: 1
+  locale: en_US.UTF-8
+  keyboard:
+    layout: us
+  identity:
+    hostname: agent-habitat
+    username: ubuntu
+    # CHANGE before production — hash: mkpasswd -m sha-512 'yourpassword'
+    password: "$6$rounds=4096$saltsalt$K8xZP5YqF5YqF5YqF5YqF5YqF5YqF5YqF5YqF5YqF5YqF5YqF5YqF5Yq"
+    realname: Agent Habitat Operator
+  ssh:
+    install-server: true
+    allow-pw: true
+  storage:
+    layout:
+      name: direct
+  packages:
+    - git
+    - curl
+    - wget
+    - jq
+    - zsh
+    - build-essential
+    - python3
+    - python3-venv
+    - python3-pip
+    - ripgrep
+    - fd-find
+    - openssh-server
+    - tmux
+  late-commands:
+    - curtin in-target -- mkdir -p /home/ubuntu/.config/cockpit /home/ubuntu/.config/agent-habitat
+    - curtin in-target -- chmod 700 /home/ubuntu/.config/cockpit
+    - curtin in-target -- touch /home/ubuntu/.config/cockpit/secrets.env
+    - curtin in-target -- chmod 600 /home/ubuntu/.config/cockpit/secrets.env
+    - curtin in-target -- bash -c 'echo hybrid > /home/ubuntu/.config/agent-habitat/profile'
+    - curtin in-target -- git clone https://github.com/Nueramarcos/agent-habitat-os.git /home/ubuntu/agent-habitat-os
+    - curtin in-target -- chown -R ubuntu:ubuntu /home/ubuntu/agent-habitat-os /home/ubuntu/.config
+    - curtin in-target -- runuser -u ubuntu -- bash /home/ubuntu/agent-habitat-os/first-boot/install.sh
+
+package_update: true
+package_upgrade: false
+
+runcmd:
+  - install -m 755 /home/ubuntu/agent-habitat-os/scripts/habitat /home/ubuntu/bin/habitat
+  - install -m 755 /home/ubuntu/agent-habitat-os/first-boot/init.sh /home/ubuntu/bin/habitat-init

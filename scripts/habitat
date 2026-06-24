@@ -29,12 +29,15 @@ usage() {
 habitat — Agent Habitat OS CLI
 
 Usage:
-  habitat install [--profile hybrid|minimal|cloud-only]
-  habitat verify
-  habitat status
-  habitat profile show|set <name>
-  habitat demo
-  habitat docs
+  habitat install [profile]     Provision workstation (hybrid|minimal|cloud-only)
+  habitat init                  First-time wizard (gh, grok, repos.yaml)
+  habitat verify                Health check (16 checks)
+  habitat status                Cockpit + issue-agent status
+  habitat profile show|set <n>  Active routing profile
+  habitat demo                  Run demo pytest lane
+  habitat ci-setup [owner/repo] Push demo CI workflow (needs workflow scope)
+  habitat iso [prepare|stage]   USB autoinstall or Cubic staging
+  habitat docs                  Open README
 
 EOF
 }
@@ -89,10 +92,35 @@ cmd_profile() {
   esac
 }
 
+cmd_init() {
+  bash "$HABITAT_ROOT/first-boot/init.sh"
+}
+
+cmd_ci_setup() {
+  bash "$HABITAT_ROOT/scripts/setup-demo-ci.sh" "${1:-Nueramarcos/agent-habitat-demo}"
+}
+
+cmd_iso() {
+  local sub="${1:-prepare}"
+  shift || true
+  case "$sub" in
+    prepare|usb)
+      bash "$HABITAT_ROOT/iso/prepare-usb.sh"
+      ;;
+    stage|build)
+      bash "$HABITAT_ROOT/iso/build-iso.sh"
+      ;;
+    *)
+      die "usage: habitat iso prepare|stage"
+      ;;
+  esac
+}
+
 cmd_demo() {
   local demo="$HABITAT_ROOT/demo/agent-habitat-demo"
   echo "═══ Agent Habitat Demo ═══"
   echo "Demo repo: $demo"
+  echo "Remote:    https://github.com/Nueramarcos/agent-habitat-demo"
   echo ""
   cd "$demo"
   local venv="$demo/.venv"
@@ -100,17 +128,18 @@ cmd_demo() {
     python3 -m venv "$venv"
     "$venv/bin/pip" install -q pytest
   fi
-  echo "Running tests (expected to fail before fix)..."
+  echo "Running local tests..."
   if "$venv/bin/python" -m pytest -q 2>&1; then
     echo ""
-    echo "All tests pass — demo already fixed!"
+    echo "All tests pass locally."
+    echo "Open a new agent-triage issue on GitHub for the next autonomous run:"
+    echo "  gh issue create -R Nueramarcos/agent-habitat-demo --label agent-triage ..."
+    echo "  issue-agent fix Nueramarcos/agent-habitat-demo <N>"
   else
     echo ""
-    echo "Tests fail as designed. Fix with:"
-    echo "  cd $demo"
+    echo "Tests failing. Fix with:"
     echo "  grok -p 'Fix habitat/calc.py so all tests pass'"
-    echo "  # or autonomous:"
-    echo "  issue-agent fix Nueramarcos/agent-habitat-demo 1"
+    echo "  issue-agent fix Nueramarcos/agent-habitat-demo <issue>"
   fi
 }
 
@@ -121,10 +150,13 @@ main() {
   shift || true
   case "$cmd" in
     install)       cmd_install "$@" ;;
+    init)          cmd_init ;;
     verify|check)  cmd_verify ;;
     status)        cmd_status ;;
     profile)       cmd_profile "$@" ;;
     demo)          cmd_demo ;;
+    ci-setup|ci)   cmd_ci_setup "$@" ;;
+    iso)           cmd_iso "$@" ;;
     docs)          less "$HABITAT_ROOT/README.md" 2>/dev/null || cat "$HABITAT_ROOT/README.md" ;;
     ""|help|-h)    usage ;;
     *)             die "unknown command: $cmd (try: habitat help)" ;;

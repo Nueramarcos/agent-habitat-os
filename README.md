@@ -23,15 +23,17 @@ cd agent-habitat-os
 ./first-boot/install.sh
 ```
 
-**Live repos:** [agent-habitat-os](https://github.com/Nueramarcos/agent-habitat-os) · [agent-habitat-demo](https://github.com/Nueramarcos/agent-habitat-demo) · [demo PR #2](https://github.com/Nueramarcos/agent-habitat-demo/pull/2) (agent-fixed, merged)
+**Live repos:** [agent-habitat-os](https://github.com/Nueramarcos/agent-habitat-os) · [agent-habitat-demo](https://github.com/Nueramarcos/agent-habitat-demo) · [PR #2 merged](https://github.com/Nueramarcos/agent-habitat-demo/pull/2) · [issue #3](https://github.com/Nueramarcos/agent-habitat-demo/issues/3) (round 2)
 
 Then:
 
 ```bash
+habitat init        # wizard: gh, grok, repos.yaml
 grok login          # or export XAI_API_KEY=...
 gh auth login
 habitat verify
-habitat demo
+habitat demo        # round 2: mean() bug — issue #3
+habitat iso prepare # USB autoinstall for Ubuntu 24.04
 ```
 
 **Goal:** `habitat verify` green → `issue-agent demo --dry-run` passes → first agent-merge in under an hour.
