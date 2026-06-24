@@ -52,3 +52,11 @@ def mode(values: list[int]) -> int | None:
     for v in values:
         counts[v] = counts.get(v, 0) + 1
     return max(counts, key=counts.get)
+
+
+def variance(values: list[float]) -> float:
+    """Population variance; empty list returns 0.0."""
+    if not values:
+        return 0.0
+    m = mean(values)
+    return sum((x - m) ** 2 for x in values) / len(values)

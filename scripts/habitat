@@ -139,9 +139,15 @@ cmd_iso() {
         fi
       fi
       ;;
+    ssh)
+      bash "$HABITAT_ROOT/iso/scripts/vm-ssh.sh" "$@"
+      ;;
+    boot-disk)
+      bash "$HABITAT_ROOT/iso/scripts/vm-boot-disk.sh"
+      ;;
     stop)
-      local pidfile="$HABITAT_ROOT/iso/build/qemu.pid"
-      [[ -f "$pidfile" ]] && kill "$(cat "$pidfile")" 2>/dev/null && rm -f "$pidfile" && echo "QEMU stopped" || echo "no VM running"
+      /usr/bin/pkill -f 'qemu-system.*agent-habitat-test' 2>/dev/null && echo "QEMU stopped" || echo "no VM running"
+      rm -f "$HABITAT_ROOT/iso/build/qemu.pid" "$HABITAT_ROOT/iso/build/qemu-disk.pid" 2>/dev/null
       ;;
     stage|build)
       bash "$HABITAT_ROOT/iso/build-iso.sh"
