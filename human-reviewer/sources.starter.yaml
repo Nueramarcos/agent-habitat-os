@@ -1,0 +1,9 @@
+# Copy to ~/issue-agent/human-reviewer/sources.yaml on first collect.
+repos:
+  - Nueramarcos/agent-habitat-demo
+  - tinygrad/tinygrad
+  - pytorch/vision
+  - numpy/numpy
+  - psf/requests
+
+bounty_hunters: []
