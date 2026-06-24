@@ -1,4 +1,4 @@
-from habitat.calc import clamp, is_palindrome, mean, median, mode, stddev, sum_range, variance
+from habitat.calc import clamp, geometric_mean, is_palindrome, mean, median, mode, stddev, sum_range, variance
 
 
 def test_sum_range_basic():
@@ -72,3 +72,11 @@ def test_stddev():
 
 def test_stddev_empty():
     assert stddev([]) == 0.0
+
+
+def test_geometric_mean():
+    assert geometric_mean([1.0, 2.0, 4.0]) == 2.0
+
+
+def test_geometric_mean_empty():
+    assert geometric_mean([]) == 0.0
