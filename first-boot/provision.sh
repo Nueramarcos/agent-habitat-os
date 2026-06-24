@@ -13,6 +13,10 @@ MARKER="$HABITAT_HOME/.habitat-provisioned"
 
 log "Provisioning for user $HABITAT_USER on $(hostname)"
 
+if [[ -x "$REPO/first-boot/expand-disk.sh" ]]; then
+  bash "$REPO/first-boot/expand-disk.sh" || true
+fi
+
 mkdir -p "$HABITAT_HOME/.config/cockpit" "$HABITAT_HOME/.config/agent-habitat" "$HABITAT_HOME/bin"
 chmod 700 "$HABITAT_HOME/.config/cockpit"
 touch "$HABITAT_HOME/.config/cockpit/secrets.env"
