@@ -31,7 +31,7 @@ habitat — Agent Habitat OS CLI
 Usage:
   habitat install [profile]     Provision workstation (hybrid|minimal|cloud-only)
   habitat init                  First-time wizard (gh, grok, repos.yaml)
-  habitat verify                Health check (18 checks)
+  habitat verify                Health check (17 checks)
   habitat doctor                Diagnose + auto-repair known issues
   habitat status                Cockpit + issue-agent status
   habitat profile show|set <n>  Active routing profile
