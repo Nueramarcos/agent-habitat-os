@@ -46,10 +46,16 @@ if [[ "$PROFILE" != "cloud-only" ]]; then
   check "ollama"     "command -v ollama"
   if curl -sf "${OLLAMA_HOST:-http://127.0.0.1:11434}/api/tags" >/dev/null 2>&1; then
     log_pass "ollama API"
-    if curl -sf "${OLLAMA_HOST:-http://127.0.0.1:11434}/api/tags" | grep -q 'qwen2.5-coder:7b'; then
-      log_pass "model qwen2.5-coder:7b"
+    mem_gb="$(awk '/MemTotal/ {printf "%d", $2/1024/1024}' /proc/meminfo 2>/dev/null || echo 16)"
+    want_model="qwen2.5-coder:7b"
+    if [[ "$mem_gb" -lt 10 ]] || [[ "${HABITAT_LIGHT:-}" == 1 ]] \
+        || grep -q '1.5b' "$HOME/.config/agent-habitat/routing-local.yaml" 2>/dev/null; then
+      want_model="qwen2.5-coder:1.5b"
+    fi
+    if curl -sf "${OLLAMA_HOST:-http://127.0.0.1:11434}/api/tags" | grep -qF "$want_model"; then
+      log_pass "model $want_model"
     else
-      log_fail "model qwen2.5-coder:7b (run: ollama pull qwen2.5-coder:7b)"
+      log_fail "model $want_model (run: ollama pull $want_model)"
     fi
   else
     log_fail "ollama API (run: ollama serve)"

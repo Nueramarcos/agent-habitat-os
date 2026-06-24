@@ -90,8 +90,11 @@ install -m 755 "$HABITAT_ROOT/scripts/habitat" "$HOME/bin/habitat"
 grep -q 'agent-habitat-os' "$HOME/.zsh/20-habitat.zsh" 2>/dev/null || \
   cp "$HABITAT_ROOT/cockpit/zsh/20-habitat.zsh" "$HOME/.zsh/20-habitat.zsh" 2>/dev/null || true
 
-# Persist profile
+# Persist profile (cloud-init runcmd may leave profile root-owned)
 mkdir -p "$HOME/.config/agent-habitat"
+if [[ -e "$HOME/.config/agent-habitat/profile" ]] && [[ ! -w "$HOME/.config/agent-habitat/profile" ]]; then
+  sudo chown -R "$(id -un):$(id -gn)" "$HOME/.config/agent-habitat" 2>/dev/null || true
+fi
 echo "$PROFILE" > "$HOME/.config/agent-habitat/profile"
 
 # Symlink routing for agents
