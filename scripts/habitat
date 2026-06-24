@@ -122,6 +122,9 @@ cmd_iso() {
     vm|qemu|test)
       bash "$HABITAT_ROOT/iso/scripts/qemu-test.sh"
       ;;
+    vm-cloud|cloud)
+      bash "$HABITAT_ROOT/iso/scripts/qemu-cloud.sh"
+      ;;
     vm-gui)
       bash "$HABITAT_ROOT/iso/scripts/qemu-gui.sh"
       ;;

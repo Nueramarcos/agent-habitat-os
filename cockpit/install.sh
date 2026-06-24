@@ -33,8 +33,8 @@ install_bin() {
   local dest="$HOME/.local/bin/$name"
   [[ -x "$dest" ]] && return 0
   log "fetching $name..."
-  curl -fsSL "$url" -o "$dest"
-  chmod +x "$dest"
+  curl -fsSL "$url" -o "$dest" || { log "warning: fetch $name failed"; return 0; }
+  chmod +x "$dest" || return 0
 }
 
 ARCH="$(uname -m)"
@@ -96,8 +96,9 @@ if [[ ! -f "$HOME/.fzf.zsh" ]]; then
 fi
 
 # motd
-cp -f "$COCKPIT_DIR/bin/motd" "$HOME/bin/motd"
-chmod +x "$HOME/bin/motd"
+mkdir -p "$HOME/bin"
+cp -f "$COCKPIT_DIR/bin/motd" "$HOME/bin/motd" 2>/dev/null || true
+chmod +x "$HOME/bin/motd" 2>/dev/null || true
 
 # ── grok ─────────────────────────────────────────────────────────────────
 if [[ "$INSTALL_GROK" == true ]] && ! command -v grok >/dev/null 2>&1; then

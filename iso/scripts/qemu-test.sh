@@ -11,13 +11,16 @@ META_DATA="${HABITAT_META_DATA:-$USB/meta-data}"
 DISK="$BUILD/agent-habitat-test.qcow2"
 LOG="$BUILD/qemu-serial.log"
 PIDFILE="$BUILD/qemu.pid"
-RAM_MB="${QEMU_RAM_MB:-4096}"
+MONITOR_SOCK="$BUILD/qemu-monitor.sock"
+RAM_MB="${QEMU_RAM_MB:-8192}"
 CPUS="${QEMU_CPUS:-2}"
+SEED="$USB/seed.iso"
 
 die() { echo "qemu-test: $*" >&2; exit 1; }
 
-# Refresh cloud-init files
+# Refresh cloud-init files + seed ISO
 bash "$ROOT/iso/prepare-usb.sh" >/dev/null 2>&1 || true
+bash "$ROOT/iso/scripts/create-seed-iso.sh" >/dev/null 2>&1 || true
 [[ -f "$USER_DATA" ]] || die "missing $USER_DATA"
 [[ -f "$META_DATA" ]] || die "missing $META_DATA"
 [[ -f "$ISO" ]] || die "missing Ubuntu ISO — run: habitat iso download"
@@ -42,6 +45,10 @@ FW_CFG=(
   -fw_cfg "name=opt/com.coreos/cloud-init/ident,file=${META_DATA}"
 )
 
+SEED_DRIVE=()
+[[ -f "$SEED" ]] && SEED_DRIVE=(-drive "file=$SEED,if=virtio,media=cdrom,readonly=on")
+
+rm -f "$MONITOR_SOCK"
 cmd=(
   qemu-system-x86_64
   "${KVM_ARGS[@]}"
@@ -49,12 +56,13 @@ cmd=(
   -smp "$CPUS"
   -drive "file=$DISK,if=virtio,format=qcow2"
   -drive "file=$ISO,if=ide,media=cdrom,readonly=on"
+  "${SEED_DRIVE[@]}"
   "${FW_CFG[@]}"
   -netdev user,id=net0,dhcpstart=10.0.2.15,hostfwd=tcp::2222-:22
   -device virtio-net-pci,netdev=net0
   -boot order=d
   -nographic
-  -monitor null
+  -monitor "unix:$MONITOR_SOCK,server,nowait"
   -serial "file:$LOG"
 )
 
@@ -73,3 +81,16 @@ echo ""
 nohup "${cmd[@]}" > "$BUILD/qemu-stdout.log" 2>&1 &
 echo $! > "$PIDFILE"
 echo "QEMU started pid=$(cat "$PIDFILE")"
+
+# Headless GRUB often needs Enter — send via QMP after boot menu appears
+(
+  for _ in $(seq 1 60); do
+    [[ -S "$MONITOR_SOCK" ]] && break
+    sleep 1
+  done
+  [[ -S "$MONITOR_SOCK" ]] || exit 0
+  for _ in 1 2 3 4 5 6 8 10; do
+    printf 'sendkey ret\n' | socat - "UNIX-CONNECT:$MONITOR_SOCK" 2>/dev/null || true
+    sleep 20
+  done
+) > "$BUILD/qemu-grub-helper.log" 2>&1 &

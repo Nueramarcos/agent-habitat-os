@@ -1,0 +1,64 @@
+#cloud-config
+# Agent Habitat OS — Ubuntu 24.04 cloud image first boot
+
+hostname: agent-habitat
+manage_etc_hosts: true
+users:
+  - name: ubuntu
+    gecos: Agent Habitat Operator
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    shell: /bin/bash
+    lock_passwd: false
+    plain_text_passwd: ubuntu
+ssh_pwauth: true
+chpasswd:
+  expire: false
+package_update: true
+packages:
+  - git
+  - curl
+  - wget
+  - jq
+  - zsh
+  - build-essential
+  - python3
+  - python3-venv
+  - python3-pip
+  - ripgrep
+  - fd-find
+  - openssh-server
+  - tmux
+write_files:
+  - path: /etc/systemd/system/agent-habitat-firstboot.service
+    content: |
+      [Unit]
+      Description=Agent Habitat first-boot provisioning
+      After=network-online.target
+      Wants=network-online.target
+      ConditionPathExists=!/home/ubuntu/.habitat-provisioned
+
+      [Service]
+      Type=oneshot
+      User=ubuntu
+      WorkingDirectory=/home/ubuntu/agent-habitat-os
+      ExecStart=/bin/bash /home/ubuntu/agent-habitat-os/first-boot/install.sh
+      ExecStartPost=/usr/bin/touch /home/ubuntu/.habitat-provisioned
+      RemainAfterExit=yes
+
+      [Install]
+      WantedBy=multi-user.target
+runcmd:
+  - mkdir -p /home/ubuntu/.config/cockpit /home/ubuntu/.config/agent-habitat /home/ubuntu/bin
+  - chmod 700 /home/ubuntu/.config/cockpit
+  - touch /home/ubuntu/.config/cockpit/secrets.env
+  - chmod 600 /home/ubuntu/.config/cockpit/secrets.env
+  - echo hybrid > /home/ubuntu/.config/agent-habitat/profile
+  - git clone https://github.com/Nueramarcos/agent-habitat-os.git /home/ubuntu/agent-habitat-os
+  - chown -R ubuntu:ubuntu /home/ubuntu/agent-habitat-os /home/ubuntu/.config
+  - install -o ubuntu -g ubuntu -m 755 /home/ubuntu/agent-habitat-os/scripts/habitat /home/ubuntu/bin/habitat
+  - chown -R ubuntu:ubuntu /home/ubuntu/bin
+  - lvextend -l +100%FREE /dev/mapper/ubuntu--vg-ubuntu--lv || true
+  - resize2fs /dev/mapper/ubuntu--vg-ubuntu--lv || true
+  - systemctl daemon-reload
+  - systemctl enable agent-habitat-firstboot.service
+  - systemctl start agent-habitat-firstboot.service
