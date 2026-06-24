@@ -20,6 +20,10 @@ log "  root:    $HABITAT_ROOT"
 log "  profile: $PROFILE"
 log "  user:    ${USER:-unknown}"
 
+if [[ -x "$HABITAT_ROOT/first-boot/expand-disk.sh" ]]; then
+  bash "$HABITAT_ROOT/first-boot/expand-disk.sh" || true
+fi
+
 # ── apt base ─────────────────────────────────────────────────────────────
 if command -v apt-get >/dev/null 2>&1; then
   log "Installing base packages..."

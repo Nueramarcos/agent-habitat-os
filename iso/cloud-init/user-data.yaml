@@ -60,6 +60,8 @@ RemainAfterExit=yes
 WantedBy=multi-user.target
 UNIT'
     - curtin in-target -- systemctl enable agent-habitat-firstboot.service
+    - curtin in-target -- lvextend -l +100%FREE /dev/mapper/ubuntu--vg-ubuntu--lv || true
+    - curtin in-target -- resize2fs /dev/mapper/ubuntu--vg-ubuntu--lv || true
 
 # First real boot: network available, then Ollama/Grok/issue-agent install
 package_update: true
