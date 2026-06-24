@@ -41,17 +41,25 @@ pull_model() {
   local m="$1"
   if ollama list 2>/dev/null | grep -qF "$m"; then
     log "model present: $m"
-  else
-    log "pulling $m..."
-    ollama pull "$m"
+    return 0
   fi
+  log "pulling $m..."
+  if ollama pull "$m"; then
+    return 0
+  fi
+  log "warning: failed to pull $m — retry later: ollama pull $m"
+  return 0
 }
 
 case "$PROFILE" in
   minimal|hybrid)
-    pull_model "qwen2.5-coder:7b"
-    pull_model "qwen2.5-coder:1.5b"
-    pull_model "nomic-embed-text" || true
+    if [[ "${HABITAT_LIGHT:-}" == 1 ]]; then
+      pull_model "qwen2.5-coder:1.5b"
+    else
+      pull_model "qwen2.5-coder:7b"
+      pull_model "qwen2.5-coder:1.5b"
+      pull_model "nomic-embed-text"
+    fi
     ;;
 esac
 
@@ -61,7 +69,9 @@ if [[ -d "$INSTALL_DIR/.git" ]]; then
   git -C "$INSTALL_DIR" pull --ff-only 2>/dev/null || true
 else
   log "Cloning issue-agent..."
-  git clone "$ISSUE_AGENT_REPO" "$INSTALL_DIR"
+  if ! git clone "$ISSUE_AGENT_REPO" "$INSTALL_DIR"; then
+    log "warning: issue-agent clone failed — check network and retry"
+  fi
 fi
 
 VENV_DIR="${ISSUE_AGENT_VENV:-$HOME/.local/venvs/aider}"
@@ -69,7 +79,9 @@ mkdir -p "$(dirname "$VENV_DIR")"
 if [[ ! -x "$VENV_DIR/bin/aider" ]]; then
   log "Creating Aider venv..."
   python3 -m venv "$VENV_DIR"
-  "$VENV_DIR/bin/pip" install -U pip aider-chat pyyaml
+  if ! "$VENV_DIR/bin/pip" install -U pip aider-chat pyyaml; then
+    log "warning: pip install failed — retry: $VENV_DIR/bin/pip install -U pip aider-chat pyyaml"
+  fi
 fi
 
 mkdir -p "$HOME/agent-workspaces" "$HOME/bin"

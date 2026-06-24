@@ -69,6 +69,9 @@ if [[ -f "$MARKER" ]]; then
 fi
 
 log "Starting first-boot (Ollama + agents — may take 10+ min)..."
-sudo systemctl start agent-habitat-firstboot.service
+if ! sudo systemctl start agent-habitat-firstboot.service; then
+  log "systemd start failed — run manually with log:"
+  log "  cd $REPO && HABITAT_LIGHT=1 bash first-boot/install.sh 2>&1 | tee ~/habitat-install.log"
+fi
 sudo systemctl status agent-habitat-firstboot.service --no-pager || true
-log "Tail progress: sudo journalctl -u agent-habitat-firstboot -f"
+log "On failure: sudo journalctl -u agent-habitat-firstboot -n 60 --no-pager"
