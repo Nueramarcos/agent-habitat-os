@@ -122,6 +122,9 @@ cmd_iso() {
     smoke)
       bash "$HABITAT_ROOT/iso/scripts/qemu-smoke.sh"
       ;;
+    watch)
+      bash "$HABITAT_ROOT/iso/scripts/vm-watch.sh"
+      ;;
     vm-status|status)
       local log="$HABITAT_ROOT/iso/build/qemu-serial.log"
       local pidfile="$HABITAT_ROOT/iso/build/qemu.pid"
