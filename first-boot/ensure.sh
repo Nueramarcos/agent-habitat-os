@@ -45,6 +45,9 @@ fi
 if [[ -d "$HOME/issue-agent" ]] && [[ -x "$HABITAT_ROOT/agent-runtime/sync-issue-agent.sh" ]]; then
   bash "$HABITAT_ROOT/agent-runtime/sync-issue-agent.sh" || true
 fi
+if [[ -x "$HABITAT_ROOT/agent-runtime/configure-model-tier.sh" ]]; then
+  bash "$HABITAT_ROOT/agent-runtime/configure-model-tier.sh" || true
+fi
 
 # ── GITHUB_TOKEN blocks gh on host ───────────────────────────────────────
 if [[ -n "${GITHUB_TOKEN:-}" ]] && gh auth status 2>&1 | grep -q 'invalid'; then
