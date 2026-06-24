@@ -16,8 +16,9 @@ echo "    login: nueramarcos (or ubuntu for autoinstall)"
 echo "    password: what you set in GUI installer"
 echo "    then: sudo journalctl -u agent-habitat-firstboot -f"
 
+MEM="${QEMU_MEM:-8192}"
 exec qemu-system-x86_64 \
-  -machine pc,accel=kvm -cpu qemu64 -m 4096 -smp 2 \
+  -machine pc,accel=kvm -cpu qemu64 -m "$MEM" -smp 2 \
   -drive "file=$DISK,if=virtio,format=qcow2" \
   -netdev user,id=net0,hostfwd=tcp::2222-:22 \
   -device virtio-net,netdev=net0 \

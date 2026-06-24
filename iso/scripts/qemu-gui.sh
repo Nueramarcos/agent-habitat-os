@@ -20,8 +20,9 @@ fi
 
 echo $$ > "$BUILD/qemu-gui.pid"
 
+MEM="${QEMU_MEM:-8192}"
 exec qemu-system-x86_64 \
-  -machine pc,accel=kvm -cpu qemu64 -m 4096 -smp 2 \
+  -machine pc,accel=kvm -cpu qemu64 -m "$MEM" -smp 2 \
   -drive "file=$DISK,if=virtio,format=qcow2" \
   -drive "file=$ISO,if=ide,media=cdrom,readonly=on" \
   -fw_cfg "name=opt/com.coreos/cloud-init/config,file=$USER_DATA" \
