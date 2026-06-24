@@ -186,15 +186,20 @@ fi
 
 # Recovery only when agent failed AND issue still open AND no merged PR exists
 if [[ -z "$PR_URL" ]] && ! issue_is_closed && [[ -z "$(find_merged_pr)" ]]; then
-  if recover_workspace "$WS"; then
-    log "recovery: tests pass — finishing PR pipeline"
-    cd "$WS"
-    if [[ "${HABITAT_HUMAN_TOWER:-1}" == "1" ]] && [[ -x "$HOME/issue-agent/scripts/human-tower-gate.sh" ]]; then
-      log "Human Tower: maintainer-voice review..."
-      if ! bash "$HOME/issue-agent/scripts/human-tower-gate.sh" "$REPO" "$WS" "Fix issue #$ISSUE" 2>&1 | tee "/tmp/human-tower-${ISSUE}.log"; then
-        die "Human Tower rejected recovery diff — see /tmp/human-tower-${ISSUE}.log"
+    if recover_workspace "$WS"; then
+      log "recovery: tests pass — finishing PR pipeline"
+      cd "$WS"
+      stage_clean_changes
+      commits_ahead="$(git rev-list origin/main..HEAD --count 2>/dev/null || echo 0)"
+      if git diff --cached --quiet && [[ "$commits_ahead" == "0" ]]; then
+        die "recovery: tests pass but no diff — agent made no changes"
       fi
-    fi
+      if [[ "${HABITAT_HUMAN_TOWER:-1}" == "1" ]] && [[ -x "$HOME/issue-agent/scripts/human-tower-gate.sh" ]]; then
+        log "Human Tower: maintainer-voice review..."
+        if ! bash "$HOME/issue-agent/scripts/human-tower-gate.sh" "$REPO" "$WS" "Fix issue #$ISSUE" 2>&1 | tee "/tmp/human-tower-${ISSUE}.log"; then
+          die "Human Tower rejected recovery diff — see /tmp/human-tower-${ISSUE}.log"
+        fi
+      fi
     stage_clean_changes
     if ! git diff --cached --quiet; then
       git commit -m "Fix issue #$ISSUE (habitat fix recovery)" 2>/dev/null || true

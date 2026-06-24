@@ -3,16 +3,19 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+CLOUD_DISK="$ROOT/iso/build/agent-habitat-cloud.qcow2"
 DISK="$ROOT/iso/build/agent-habitat-test.qcow2"
+[[ -f "$CLOUD_DISK" ]] && DISK="$CLOUD_DISK"
 PORT="${HABITAT_VM_SSH_PORT:-2222}"
-USER="${HABITAT_VM_USER:-nueramarcos}"
+USER="${HABITAT_VM_USER:-ubuntu}"
+PASS="${HABITAT_VM_PASSWORD:-ubuntu}"
 
 echo "═══ Agent Habitat VM peek ═══"
 echo ""
 
 # Process
-if pgrep -f 'qemu-system.*agent-habitat-test' >/dev/null; then
-  pid="$(pgrep -f 'qemu-system.*agent-habitat-test' | head -1)"
+if pgrep -f 'qemu-system.*agent-habitat-(cloud|test)' >/dev/null; then
+  pid="$(pgrep -f 'qemu-system.*agent-habitat-(cloud|test)' | head -1)"
   echo "VM:     running (pid $pid)"
   ps -p "$pid" -o rss=,etime= 2>/dev/null | awk '{printf "RAM:    %.1f GB RSS, uptime %s\n", $1/1024/1024, $2}'
 else
@@ -43,7 +46,8 @@ else
 fi
 
 # Remote verify (needs password or key)
-if [[ -n "${HABITAT_VM_PASSWORD:-}" ]]; then
+HABITAT_VM_PASSWORD="${HABITAT_VM_PASSWORD:-$PASS}"
+if [[ -n "$HABITAT_VM_PASSWORD" ]]; then
   echo ""
   echo "── Remote checks ──"
   if command -v sshpass >/dev/null; then
@@ -75,5 +79,5 @@ else
   echo "  tail -5 ~/habitat-install.log"
   echo ""
   echo "Or from host with password:"
-  echo "  HABITAT_VM_USER=nuermarcos HABITAT_VM_PASSWORD='...' habitat iso peek"
+  echo "  HABITAT_VM_USER=ubuntu HABITAT_VM_PASSWORD=ubuntu habitat iso peek"
 fi

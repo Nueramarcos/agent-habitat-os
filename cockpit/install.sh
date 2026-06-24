@@ -33,8 +33,8 @@ install_bin() {
   local dest="$HOME/.local/bin/$name"
   [[ -x "$dest" ]] && return 0
   log "fetching $name..."
-  curl -fsSL "$url" -o "$dest" || { log "warning: fetch $name failed"; return 0; }
-  chmod +x "$dest" || return 0
+  curl -fsSL "$url" -o "$dest" || { log "warning: fetch $name failed"; rm -f "$dest"; return 0; }
+  [[ -f "$dest" ]] && chmod +x "$dest" || return 0
 }
 
 ARCH="$(uname -m)"
@@ -95,10 +95,14 @@ if [[ ! -f "$HOME/.fzf.zsh" ]]; then
   "$HOME/.fzf/install" --all --no-bash --no-fish 2>/dev/null || true
 fi
 
-# motd
+# motd (cloud-init runcmd may leave ~/bin root-owned — ensure.sh fixes; be defensive)
 mkdir -p "$HOME/bin"
-cp -f "$COCKPIT_DIR/bin/motd" "$HOME/bin/motd" 2>/dev/null || true
-chmod +x "$HOME/bin/motd" 2>/dev/null || true
+if [[ -w "$HOME/bin" ]]; then
+  cp -f "$COCKPIT_DIR/bin/motd" "$HOME/bin/motd" 2>/dev/null || true
+  chmod +x "$HOME/bin/motd" 2>/dev/null || true
+else
+  log "warning: ~/bin not writable — skipping motd (habitat doctor can repair)"
+fi
 
 # ── grok ─────────────────────────────────────────────────────────────────
 if [[ "$INSTALL_GROK" == true ]] && ! command -v grok >/dev/null 2>&1; then
