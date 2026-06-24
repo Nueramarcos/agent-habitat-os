@@ -11,6 +11,11 @@ META_DATA="$BUILD/usb/meta-data"
 
 [[ -f "$ISO" ]] || { echo "run: habitat iso download"; exit 1; }
 bash "$ROOT/iso/prepare-usb.sh" >/dev/null 2>&1 || true
+
+if [[ "${QEMU_FRESH_DISK:-0}" == 1 ]] && [[ -f "$DISK" ]]; then
+  echo "==> Fresh disk requested — removing $DISK"
+  rm -f "$DISK"
+fi
 [[ -f "$DISK" ]] || qemu-img create -f qcow2 "$DISK" 32G >/dev/null
 
 echo $$ > "$BUILD/qemu-gui.pid"
