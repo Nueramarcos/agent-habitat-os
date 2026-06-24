@@ -50,9 +50,9 @@ write_files:
 runcmd:
   - mkdir -p /home/ubuntu/.config/cockpit /home/ubuntu/.config/agent-habitat /home/ubuntu/bin /home/ubuntu/.local/bin /home/ubuntu/agent-workspaces
   - chown -R ubuntu:ubuntu /home/ubuntu/.config /home/ubuntu/bin /home/ubuntu/.local /home/ubuntu/agent-workspaces
+  - chown -R ubuntu:ubuntu /home/ubuntu/.config
   - chmod 700 /home/ubuntu/.config/cockpit
-  - touch /home/ubuntu/.config/cockpit/secrets.env
-  - chmod 600 /home/ubuntu/.config/cockpit/secrets.env
+  - install -o ubuntu -g ubuntu -m 600 /dev/null /home/ubuntu/.config/cockpit/secrets.env
   - echo hybrid > /home/ubuntu/.config/agent-habitat/profile
   - git clone https://github.com/Nueramarcos/agent-habitat-os.git /home/ubuntu/agent-habitat-os
   - chown -R ubuntu:ubuntu /home/ubuntu/agent-habitat-os

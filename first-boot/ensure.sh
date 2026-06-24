@@ -5,13 +5,18 @@ set -uo pipefail
 HABITAT_ROOT="${HABITAT_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 log() { printf '\033[38;5;141m[ensure]\033[0m %s\n' "$*"; }
 
-# ── ownership (cloud-init / runcmd often leaves ~/bin root-owned) ────────
-if [[ -d "$HOME/bin" ]] && [[ ! -w "$HOME/bin" ]]; then
-  log "Fixing ownership of ~/bin"
-  sudo chown -R "$(id -un):$(id -gn)" "$HOME/bin" 2>/dev/null || true
-fi
+# ── ownership (cloud-init runcmd often leaves ~/bin or ~/.config root-owned) ─
+for d in "$HOME/bin" "$HOME/.config" "$HOME/.local"; do
+  if [[ -d "$d" ]] && [[ ! -w "$d" ]]; then
+    log "Fixing ownership of $d"
+    sudo chown -R "$(id -un):$(id -gn)" "$d" 2>/dev/null || true
+  fi
+done
 mkdir -p "$HOME/bin" "$HOME/.local/bin" "$HOME/.grok/bin" "$HOME/.config/cockpit" "$HOME/agent-workspaces"
 chmod 700 "$HOME/.config/cockpit" 2>/dev/null || true
+touch "$HOME/.config/cockpit/secrets.env" 2>/dev/null || sudo touch "$HOME/.config/cockpit/secrets.env" 2>/dev/null || true
+sudo chown "$(id -un):$(id -gn)" "$HOME/.config/cockpit/secrets.env" 2>/dev/null || true
+chmod 600 "$HOME/.config/cockpit/secrets.env" 2>/dev/null || true
 
 # Bash SSH sessions (session-b, paramiko) need grok on PATH
 if [[ -f "$HABITAT_ROOT/first-boot/bash-path.sh" ]]; then
