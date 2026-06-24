@@ -67,6 +67,10 @@ esac
 if [[ -d "$INSTALL_DIR/.git" ]]; then
   log "Updating issue-agent at $INSTALL_DIR"
   git -C "$INSTALL_DIR" pull --ff-only 2>/dev/null || true
+elif [[ -d "$INSTALL_DIR" ]] && [[ -n "$(ls -A "$INSTALL_DIR" 2>/dev/null)" ]]; then
+  log "issue-agent dir exists without .git — re-cloning"
+  rm -rf "$INSTALL_DIR"
+  git clone "$ISSUE_AGENT_REPO" "$INSTALL_DIR" || log "warning: issue-agent clone failed"
 else
   log "Cloning issue-agent..."
   if ! git clone "$ISSUE_AGENT_REPO" "$INSTALL_DIR"; then
