@@ -1,4 +1,4 @@
-from habitat.calc import clamp, is_palindrome, mean, sum_range
+from habitat.calc import clamp, is_palindrome, mean, median, sum_range
 
 
 def test_sum_range_basic():
@@ -32,3 +32,15 @@ def test_mean():
 
 def test_mean_empty():
     assert mean([]) == 0.0
+
+
+def test_median_odd():
+    assert median([3, 1, 2]) == 2.0
+
+
+def test_median_even():
+    assert median([1, 2, 3, 4]) == 2.5
+
+
+def test_median_empty():
+    assert median([]) == 0.0

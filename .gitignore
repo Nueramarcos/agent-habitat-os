@@ -6,5 +6,7 @@ demo/**/.venv/
 .env
 *.iso
 iso/build/
+!iso/build/usb/user-data
+!iso/build/usb/meta-data
 iso/output/
 .DS_Store

@@ -81,13 +81,35 @@ habitat iso stage    # or ./iso/build-iso.sh
 habitat iso prepare  # USB autoinstall files
 ```
 
+## QEMU test (headless)
+
+```bash
+habitat iso download    # once (~3.3 GB)
+habitat iso smoke       # verify files + KVM
+habitat iso vm          # headless autoinstall (fw_cfg NoCloud)
+habitat iso vm-status   # disk should grow past 1G during install
+```
+
+If headless GRUB loops, use GUI to confirm ISO boots:
+
+```bash
+habitat iso vm-gui      # watch installer; autoinstall should start automatically
+```
+
+After install (~15–30 min), SSH in:
+
+```bash
+ssh -p 2222 ubuntu@localhost   # password: ubuntu
+habitat verify
+```
+
 ## VM test checklist
 
-- [ ] Boots to desktop/live session
-- [ ] `habitat verify` ≥ 80% pass after first-boot
+- [ ] `habitat iso smoke` all green
+- [ ] QEMU disk grows past 1G during install
+- [ ] `ssh -p 2222 ubuntu@localhost` works after install
+- [ ] `habitat verify` ≥ 80% pass post-install
 - [ ] Ollama serves `qwen2.5-coder:7b`
-- [ ] `habitat demo` shows failing tests
-- [ ] `grok login` works in browser
 
 ## Enterprise notes
 

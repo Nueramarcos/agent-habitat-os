@@ -36,7 +36,7 @@ Usage:
   habitat profile show|set <n>  Active routing profile
   habitat demo                  Run demo pytest lane
   habitat ci-setup [owner/repo] Push demo CI workflow (needs workflow scope)
-  habitat iso [prepare|stage]   USB autoinstall or Cubic staging
+  habitat iso [prepare|stage|seed|download|vm|vm-status]
   habitat docs                  Open README
 
 EOF
@@ -107,11 +107,47 @@ cmd_iso() {
     prepare|usb)
       bash "$HABITAT_ROOT/iso/prepare-usb.sh"
       ;;
+    seed)
+      bash "$HABITAT_ROOT/iso/scripts/create-seed-iso.sh"
+      ;;
+    download)
+      bash "$HABITAT_ROOT/iso/scripts/download-ubuntu-iso.sh"
+      ;;
+    vm|qemu|test)
+      bash "$HABITAT_ROOT/iso/scripts/qemu-test.sh"
+      ;;
+    vm-gui)
+      bash "$HABITAT_ROOT/iso/scripts/qemu-gui.sh"
+      ;;
+    smoke)
+      bash "$HABITAT_ROOT/iso/scripts/qemu-smoke.sh"
+      ;;
+    vm-status|status)
+      local log="$HABITAT_ROOT/iso/build/qemu-serial.log"
+      local pidfile="$HABITAT_ROOT/iso/build/qemu.pid"
+      if [[ -f "$pidfile" ]] && kill -0 "$(cat "$pidfile")" 2>/dev/null; then
+        echo "QEMU running pid=$(cat "$pidfile")"
+      else
+        echo "QEMU not running"
+      fi
+      if [[ -f "$log" ]]; then
+        echo "--- serial log (last 20 lines) ---"
+        tail -20 "$log"
+        echo ""
+        if grep -qiE 'autoinstall|subiquity|curtin|agent-habitat' "$log" 2>/dev/null; then
+          echo "✓ autoinstall/habitat signals detected in log"
+        fi
+      fi
+      ;;
+    stop)
+      local pidfile="$HABITAT_ROOT/iso/build/qemu.pid"
+      [[ -f "$pidfile" ]] && kill "$(cat "$pidfile")" 2>/dev/null && rm -f "$pidfile" && echo "QEMU stopped" || echo "no VM running"
+      ;;
     stage|build)
       bash "$HABITAT_ROOT/iso/build-iso.sh"
       ;;
     *)
-      die "usage: habitat iso prepare|stage"
+      die "usage: habitat iso prepare|seed|download|vm|vm-status|stop|stage"
       ;;
   esac
 }

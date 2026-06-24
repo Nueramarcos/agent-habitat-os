@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+# QEMU smoke test — Ubuntu 24.04 autoinstall + Agent Habitat cloud-init
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+BUILD="$ROOT/iso/build"
+USB="$BUILD/usb"
+ISO="${UBUNTU_ISO:-$BUILD/ubuntu-24.04.3-live-server-amd64.iso}"
+USER_DATA="${HABITAT_USER_DATA:-$USB/user-data}"
+META_DATA="${HABITAT_META_DATA:-$USB/meta-data}"
+DISK="$BUILD/agent-habitat-test.qcow2"
+LOG="$BUILD/qemu-serial.log"
+PIDFILE="$BUILD/qemu.pid"
+RAM_MB="${QEMU_RAM_MB:-4096}"
+CPUS="${QEMU_CPUS:-2}"
+
+die() { echo "qemu-test: $*" >&2; exit 1; }
+
+# Refresh cloud-init files
+bash "$ROOT/iso/prepare-usb.sh" >/dev/null 2>&1 || true
+[[ -f "$USER_DATA" ]] || die "missing $USER_DATA"
+[[ -f "$META_DATA" ]] || die "missing $META_DATA"
+[[ -f "$ISO" ]] || die "missing Ubuntu ISO — run: habitat iso download"
+
+mkdir -p "$BUILD"
+if [[ "${QEMU_FRESH_DISK:-0}" == 1 ]] && [[ -f "$DISK" ]]; then
+  rm -f "$DISK"
+fi
+[[ -f "$DISK" ]] || qemu-img create -f qcow2 "$DISK" 32G >/dev/null
+
+KVM_ARGS=()
+if [[ -e /dev/kvm ]] && [[ -r /dev/kvm ]]; then
+  KVM_ARGS=(-machine pc,accel=kvm -cpu qemu64)
+else
+  KVM_ARGS=(-machine pc,accel=tcg -cpu max)
+  echo "warning: KVM unavailable — using TCG (slow)"
+fi
+
+# fw_cfg NoCloud is more reliable than a second CDROM for autoinstall detection
+FW_CFG=(
+  -fw_cfg "name=opt/com.coreos/cloud-init/config,file=${USER_DATA}"
+  -fw_cfg "name=opt/com.coreos/cloud-init/ident,file=${META_DATA}"
+)
+
+cmd=(
+  qemu-system-x86_64
+  "${KVM_ARGS[@]}"
+  -m "$RAM_MB"
+  -smp "$CPUS"
+  -drive "file=$DISK,if=virtio,format=qcow2"
+  -drive "file=$ISO,if=ide,media=cdrom,readonly=on"
+  "${FW_CFG[@]}"
+  -netdev user,id=net0,dhcpstart=10.0.2.15,hostfwd=tcp::2222-:22
+  -device virtio-net-pci,netdev=net0
+  -boot order=d
+  -nographic
+  -monitor null
+  -serial "file:$LOG"
+)
+
+echo "==> Agent Habitat QEMU test (fw_cfg NoCloud)"
+echo "    ubuntu:    $ISO"
+echo "    user-data: $USER_DATA"
+echo "    disk:      $DISK"
+echo "    log:       $LOG"
+echo "    ssh fwd:   localhost:2222 → vm:22 (after install)"
+echo ""
+echo "    habitat iso vm-status"
+echo "    tail -f $LOG"
+echo ""
+
+: > "$LOG"
+nohup "${cmd[@]}" > "$BUILD/qemu-stdout.log" 2>&1 &
+echo $! > "$PIDFILE"
+echo "QEMU started pid=$(cat "$PIDFILE")"
