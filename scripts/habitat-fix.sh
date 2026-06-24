@@ -102,7 +102,8 @@ open_pr_if_needed() {
   gh api "repos/$REPO/pulls" \
     -f title="Fix issue #$ISSUE" \
     -f head="$branch" -f base="main" \
-    -f body="Closes #$ISSUE. Shipped via habitat fix (zero-rescue loop)."
+    -f body="Closes #$ISSUE. Shipped via habitat fix (zero-rescue loop)." \
+    --jq '.html_url'
 }
 
 wait_and_merge() {
