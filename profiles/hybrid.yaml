@@ -1,0 +1,22 @@
+name: hybrid
+description: Cloud Grok for plan/review; local Ollama 7B for codegen and triage.
+
+cloud:
+  enabled: true
+  required_for: [architecture, multi_file_refactor, code_review, hard_debug]
+
+local:
+  enabled: true
+  pull_models:
+    - qwen2.5-coder:7b
+    - qwen2.5-coder:1.5b
+    - nomic-embed-text
+
+grok:
+  install: true
+  login_prompt: true
+
+issue_agent:
+  enabled: true
+  model: ollama/qwen2.5-coder:7b
+  triage_model: qwen2.5-coder:1.5b

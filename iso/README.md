@@ -1,0 +1,78 @@
+# Agent Habitat OS — ISO Build
+
+Bootable Ubuntu 24.04 live image with Agent Habitat first-boot baked in.
+
+## Approach
+
+We use **[Cubic](https://github.com/PJ-Singh-001/Cubic)** (Custom Ubuntu ISO Creator) — GUI tool that customizes the Ubuntu live ISO. Alternative: `live-build` or NixOS for fully declarative images (future).
+
+## Prerequisites
+
+```bash
+sudo apt install cubic
+```
+
+Download [Ubuntu 24.04 Desktop ISO](https://ubuntu.com/download/desktop).
+
+## Build steps
+
+1. Launch Cubic → select Ubuntu 24.04 ISO
+2. On **Disk** tab: ensure ≥25 GB free for Ollama models in persistent overlay (or pull on first boot)
+3. On **Minimal** tab: add packages from [`packages.list`](packages.list)
+4. On **Terminal** tab (chroot), run:
+
+```bash
+# Copy habitat repo into live user home (Cubic chroot)
+git clone https://github.com/Nueramarcos/agent-habitat-os.git /home/ubuntu/agent-habitat-os
+chown -R ubuntu:ubuntu /home/ubuntu/agent-habitat-os
+```
+
+5. On **Boot** tab → **Post-install script**, paste contents of [`autoinstall/post-install.sh`](autoinstall/post-install.sh)
+6. Generate ISO → test in VM
+
+## First boot (live or installed)
+
+```bash
+cd ~/agent-habitat-os
+./first-boot/install.sh
+grok login
+gh auth login
+habitat verify
+```
+
+## Profiles for ISO variants
+
+| ISO flavor | Profile | Notes |
+|------------|---------|-------|
+| `agent-habitat-hybrid.iso` | hybrid | Default — Grok + Ollama |
+| `agent-habitat-minimal.iso` | minimal | No cloud; air-gap |
+| `agent-habitat-dev.iso` | hybrid | + Docker, extra langs |
+
+Set at build time:
+
+```bash
+export HABITAT_PROFILE=minimal
+./iso/build-iso.sh
+```
+
+## `build-iso.sh`
+
+Helper that stages the repo and prints Cubic instructions. Full unattended ISO generation requires Cubic CLI or live-build — v0 documents the manual path.
+
+```bash
+./iso/build-iso.sh
+```
+
+## VM test checklist
+
+- [ ] Boots to desktop/live session
+- [ ] `habitat verify` ≥ 80% pass after first-boot
+- [ ] Ollama serves `qwen2.5-coder:7b`
+- [ ] `habitat demo` shows failing tests
+- [ ] `grok login` works in browser
+
+## Enterprise notes
+
+- **Air-gap:** build `minimal` ISO, omit Grok install, preload Ollama models in chroot with `ollama pull`
+- **Audit:** flight-recorder path documented in README
+- **Reproducibility:** prefer checking in `packages.list` + `post-install.sh` over hand-tweaked ISOs

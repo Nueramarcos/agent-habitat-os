@@ -1,0 +1,17 @@
+# Starter fleet for Agent Habitat OS — copy to ~/issue-agent/repos.yaml
+repos:
+  - name: your-user/agent-habitat-demo
+    branch: main
+    topics: [python, agents, demo]
+    ci_workflows: [CI]
+    test_command: "python3 -m pip install -q pytest && python3 -m pytest -q"
+    wait_for_checks: false
+    park_minutes: 5
+    draft_pr: false
+    auto_merge: false
+    trigger_label: agent-triage
+    tower_enabled: true
+    habitat:
+      stack: python
+      bootstrap:
+        - python3 -m pip install -q pytest

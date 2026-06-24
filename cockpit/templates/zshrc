@@ -1,0 +1,14 @@
+# Agent Habitat OS — modular zsh loader
+# Modules: ~/.zsh/[0-9][0-9]-*.zsh
+
+for f in "$HOME/.zsh"/[0-9][0-9]-*.zsh(N); do
+  source "$f"
+done
+[[ -f "$HOME/.zsh/99-local.zsh" ]] && source "$HOME/.zsh/99-local.zsh"
+
+# Grok CLI
+export PATH="$HOME/.grok/bin:$PATH"
+fpath=(~/.grok/completions/zsh $fpath)
+autoload -Uz compinit && compinit -C 2>/dev/null
+
+[[ -f "$HOME/.config/cockpit/secrets.env" ]] && source "$HOME/.config/cockpit/secrets.env"

@@ -1,0 +1,8 @@
+[project]
+name = "agent-habitat-demo"
+version = "0.1.0"
+description = "Demo repo for Agent Habitat OS — intentional bugs for agent fixes"
+requires-python = ">=3.10"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

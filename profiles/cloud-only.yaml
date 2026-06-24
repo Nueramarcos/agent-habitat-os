@@ -1,0 +1,18 @@
+name: cloud-only
+description: Grok for all agent work. Fastest quality; requires API auth.
+
+cloud:
+  enabled: true
+  required_for: [all]
+
+local:
+  enabled: false
+  pull_models: []
+
+grok:
+  install: true
+  login_prompt: true
+
+issue_agent:
+  enabled: false
+  note: Use grok directly for fixes; Issue Agent needs local Ollama for Aider codegen lane.

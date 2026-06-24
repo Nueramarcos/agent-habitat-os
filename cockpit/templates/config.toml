@@ -1,0 +1,27 @@
+[hints]
+project_picker_disabled = true
+
+[models]
+default = "grok-composer-2.5-fast"
+
+[ui]
+permission_mode = "always-approve"
+default_selected_permission = "always_allow_all_sessions"
+
+[memory]
+enabled = true
+
+[session]
+load_envrc = true
+
+[toolset.bash]
+enabled_background = true
+auto_background_on_timeout = true
+timeout_secs = 600.0
+
+[mcp_servers.github]
+url = "https://api.githubcopilot.com/mcp/"
+enabled = true
+
+[mcp_servers.github.headers]
+Authorization = "Bearer ${GITHUB_TOKEN}"

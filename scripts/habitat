@@ -1,0 +1,111 @@
+#!/usr/bin/env bash
+# Agent Habitat OS — main CLI
+set -euo pipefail
+
+HABITAT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+CONFIG_DIR="$HOME/.config/agent-habitat"
+PROFILE_FILE="$CONFIG_DIR/profile"
+
+usage() {
+  cat <<EOF
+habitat — Agent Habitat OS CLI
+
+Usage:
+  habitat install [--profile hybrid|minimal|cloud-only]
+  habitat verify
+  habitat status
+  habitat profile show|set <name>
+  habitat demo
+  habitat docs
+
+EOF
+}
+
+cmd_install() {
+  local profile="${1:-hybrid}"
+  export HABITAT_PROFILE="$profile"
+  bash "$HABITAT_ROOT/first-boot/install.sh"
+}
+
+cmd_verify() {
+  bash "$HABITAT_ROOT/first-boot/verify.sh"
+}
+
+cmd_status() {
+  echo "═══ Agent Habitat Status ═══"
+  echo "Root:    $HABITAT_ROOT"
+  echo "Profile: $(cat "$PROFILE_FILE" 2>/dev/null || echo unset)"
+  echo ""
+  command -v cockpit >/dev/null 2>&1 && cockpit || true
+  echo ""
+  if command -v issue-agent >/dev/null 2>&1; then
+    issue-agent status --quick 2>/dev/null || issue-agent status 2>/dev/null || true
+  else
+    echo "issue-agent: not installed (cloud-only profile or install pending)"
+  fi
+}
+
+cmd_profile() {
+  local sub="${1:-show}"
+  shift || true
+  mkdir -p "$CONFIG_DIR"
+  case "$sub" in
+    show)
+      local p
+      p="$(cat "$PROFILE_FILE" 2>/dev/null || echo hybrid)"
+      echo "Active profile: $p"
+      echo "Config: $HABITAT_ROOT/profiles/${p}.yaml"
+      [[ -f "$HABITAT_ROOT/profiles/${p}.yaml" ]] && cat "$HABITAT_ROOT/profiles/${p}.yaml"
+      ;;
+    set)
+      local name="${1:-}"
+      [[ -z "$name" ]] && die "usage: habitat profile set <hybrid|minimal|cloud-only>"
+      [[ -f "$HABITAT_ROOT/profiles/${name}.yaml" ]] || die "unknown profile: $name"
+      echo "$name" > "$PROFILE_FILE"
+      export HABITAT_PROFILE="$name"
+      echo "Profile set to $name — run 'habitat install' to apply"
+      ;;
+    *)
+      die "usage: habitat profile show|set <name>"
+      ;;
+  esac
+}
+
+cmd_demo() {
+  local demo="$HABITAT_ROOT/demo/agent-habitat-demo"
+  echo "═══ Agent Habitat Demo ═══"
+  echo "Demo repo: $demo"
+  echo ""
+  cd "$demo"
+  echo "Running tests (expected to fail before fix)..."
+  if python3 -m pytest -q 2>&1; then
+    echo ""
+    echo "All tests pass — demo already fixed!"
+  else
+    echo ""
+    echo "Tests fail as designed. Fix with:"
+    echo "  cd $demo"
+    echo "  grok -p 'Fix habitat/calc.py so all tests pass'"
+    echo "  # or autonomous:"
+    echo "  issue-agent fix --repo YOUR_USER/agent-habitat-demo --issue 1"
+  fi
+}
+
+die() { echo "habitat: $*" >&2; exit 1; }
+
+main() {
+  local cmd="${1:-}"
+  shift || true
+  case "$cmd" in
+    install)       cmd_install "$@" ;;
+    verify|check)  cmd_verify ;;
+    status)        cmd_status ;;
+    profile)       cmd_profile "$@" ;;
+    demo)          cmd_demo ;;
+    docs)          less "$HABITAT_ROOT/README.md" 2>/dev/null || cat "$HABITAT_ROOT/README.md" ;;
+    ""|help|-h)    usage ;;
+    *)             die "unknown command: $cmd (try: habitat help)" ;;
+  esac
+}
+
+main "$@"

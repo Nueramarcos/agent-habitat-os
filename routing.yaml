@@ -1,0 +1,56 @@
+# Hybrid intelligence routing — Agent Habitat OS
+# Profiles override these defaults; see profiles/*.yaml
+
+version: 1
+
+defaults:
+  profile: hybrid
+
+lanes:
+  cloud:
+    provider: grok
+    models:
+      plan: grok-composer-2.5-fast
+      review: grok-build
+      codegen: grok-build
+    when:
+      - task: architecture
+      - task: multi_file_refactor
+      - task: code_review
+      - task: hard_debug
+      - complexity: high
+    fallback: local.codegen
+
+  local:
+    provider: ollama
+    host: "${OLLAMA_HOST:-http://127.0.0.1:11434}"
+    models:
+      triage: qwen2.5-coder:1.5b
+      codegen: qwen2.5-coder:7b
+      embed: nomic-embed-text
+    when:
+      - task: triage
+      - task: embedding
+      - task: narrow_fix
+      - complexity: low
+      - complexity: medium
+      - policy: airgap
+      - policy: no_cloud
+
+  deterministic:
+    provider: scripts
+    when:
+      - failure: no_commits
+      - failure: ci_timeout
+      - task: known_repair
+
+issue_agent:
+  model: ollama/qwen2.5-coder:7b
+  triage_model: qwen2.5-coder:1.5b
+  max_aider_rounds: 3
+  draft_pr: true
+
+grok:
+  default_model: grok-composer-2.5-fast
+  permission_mode: always-approve
+  memory: true

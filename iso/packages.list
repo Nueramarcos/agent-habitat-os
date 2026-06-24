@@ -1,0 +1,20 @@
+# Apt packages to add in Cubic chroot — Agent Habitat OS
+git
+curl
+wget
+jq
+zsh
+build-essential
+python3
+python3-venv
+python3-pip
+ca-certificates
+gnupg
+unzip
+ripgrep
+fd-find
+openssh-client
+tmux
+docker.io
+docker-compose-v2
+gh

@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Nueramarcos/agent-habitat-os/flight-recorder/schema.json",
+  "title": "Agent Habitat Flight Recorder Event",
+  "description": "One JSONL line per agent outcome — compatible with issue-agent flight-recorder export.",
+  "type": "object",
+  "required": ["outcome", "ts"],
+  "properties": {
+    "outcome": {
+      "type": "string",
+      "enum": ["merge_success", "failure_ledger", "triage_skip", "demo_pass", "demo_fail", "habitat_verify"]
+    },
+    "ts": { "type": "string", "format": "date-time" },
+    "repo": { "type": "string" },
+    "issue_num": { "type": ["integer", "null"] },
+    "scope": { "type": "string" },
+    "kind": { "type": "string" },
+    "hint": { "type": "string" },
+    "detail": { "type": "string" },
+    "lane": { "type": "string", "enum": ["cloud", "local", "deterministic"] },
+    "model": { "type": "string" },
+    "profile": { "type": "string" },
+    "duration_secs": { "type": "number" },
+    "source": { "type": "string" }
+  }
+}
