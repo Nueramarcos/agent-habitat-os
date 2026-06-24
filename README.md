@@ -36,7 +36,11 @@ habitat verify        # 17 health checks
 habitat demo          # 21 pytest (demo repo)
 ```
 
-**Goal:** `habitat verify` green → `issue-agent fix` opens a PR → CI merges in under an hour.
+**Goal:** `habitat verify` green → `habitat fix` opens a PR → CI merges in under an hour.
+
+```bash
+habitat fix Nueramarcos/agent-habitat-demo <issue>   # zero-rescue loop
+```
 
 ## Agent demo chain (8 rounds — all merged)
 

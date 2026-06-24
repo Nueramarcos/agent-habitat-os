@@ -36,6 +36,7 @@ Usage:
   habitat status                Cockpit + issue-agent status
   habitat profile show|set <n>  Active routing profile
   habitat demo                  Run demo pytest lane
+  habitat fix <repo> <issue>    Zero-rescue: doctor → agent → PR → merge
   habitat ci-setup [owner/repo] Push demo CI workflow (needs workflow scope)
   habitat ci-setup-main       Push main repo CI workflow
   habitat iso [prepare|stage|seed|download|vm|vm-status]
@@ -195,6 +196,10 @@ cmd_iso() {
   esac
 }
 
+cmd_fix() {
+  bash "$HABITAT_ROOT/scripts/habitat-fix.sh" "$@"
+}
+
 cmd_demo() {
   local demo="$HABITAT_ROOT/demo/agent-habitat-demo"
   echo "═══ Agent Habitat Demo ═══"
@@ -235,6 +240,7 @@ main() {
     status)        cmd_status ;;
     profile)       cmd_profile "$@" ;;
     demo)          cmd_demo ;;
+    fix)           cmd_fix "$@" ;;
     ci-setup|ci)   cmd_ci_setup "$@" ;;
     ci-auth)       bash "$HABITAT_ROOT/scripts/ci-auth.sh" ;;
     iso)           cmd_iso "$@" ;;
