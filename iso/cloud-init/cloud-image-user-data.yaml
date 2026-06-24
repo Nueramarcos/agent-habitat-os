@@ -53,7 +53,7 @@ runcmd:
   - chown -R ubuntu:ubuntu /home/ubuntu/.config
   - chmod 700 /home/ubuntu/.config/cockpit
   - install -o ubuntu -g ubuntu -m 600 /dev/null /home/ubuntu/.config/cockpit/secrets.env
-  - install -o ubuntu -g ubuntu -m 644 /dev/stdin /home/ubuntu/.config/agent-habitat/profile <<< hybrid
+  - sh -c 'printf hybrid | install -o ubuntu -g ubuntu -m 644 /dev/stdin /home/ubuntu/.config/agent-habitat/profile'
   - git clone https://github.com/Nueramarcos/agent-habitat-os.git /home/ubuntu/agent-habitat-os
   - chown -R ubuntu:ubuntu /home/ubuntu/agent-habitat-os
   - install -o ubuntu -g ubuntu -m 755 /home/ubuntu/agent-habitat-os/scripts/habitat /home/ubuntu/bin/habitat
