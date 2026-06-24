@@ -154,6 +154,9 @@ cmd_iso() {
     provision)
       bash "$HABITAT_ROOT/iso/scripts/vm-provision.sh" "$@"
       ;;
+    peek)
+      bash "$HABITAT_ROOT/iso/scripts/vm-peek.sh"
+      ;;
     stop)
       /usr/bin/pkill -f 'qemu-system.*agent-habitat-test' 2>/dev/null && echo "QEMU stopped" || echo "no VM running"
       rm -f "$HABITAT_ROOT/iso/build/qemu.pid" "$HABITAT_ROOT/iso/build/qemu-disk.pid" 2>/dev/null
