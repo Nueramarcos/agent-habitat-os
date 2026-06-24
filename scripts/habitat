@@ -110,7 +110,7 @@ cmd_demo() {
     echo "  cd $demo"
     echo "  grok -p 'Fix habitat/calc.py so all tests pass'"
     echo "  # or autonomous:"
-    echo "  issue-agent fix --repo YOUR_USER/agent-habitat-demo --issue 1"
+    echo "  issue-agent fix Nueramarcos/agent-habitat-demo 1"
   fi
 }
 

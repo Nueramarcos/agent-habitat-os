@@ -71,7 +71,7 @@ cd demo/agent-habitat-demo
 python3 -m pytest   # fails — that's the point
 grok -p "Fix the failing tests in habitat/calc.py"
 # or autonomous:
-issue-agent fix --repo your-user/agent-habitat-demo --issue 1
+issue-agent fix Nueramarcos/agent-habitat-demo 1
 ```
 
 ## ISO build (optional)

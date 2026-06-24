@@ -1,6 +1,6 @@
 # Starter fleet for Agent Habitat OS — copy to ~/issue-agent/repos.yaml
 repos:
-  - name: your-user/agent-habitat-demo
+  - name: Nueramarcos/agent-habitat-demo
     branch: main
     topics: [python, agents, demo]
     ci_workflows: [CI]
