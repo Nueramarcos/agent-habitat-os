@@ -23,6 +23,8 @@ cd agent-habitat-os
 ./first-boot/install.sh
 ```
 
+**Live repos:** [agent-habitat-os](https://github.com/Nueramarcos/agent-habitat-os) · [agent-habitat-demo](https://github.com/Nueramarcos/agent-habitat-demo) · [issue #1](https://github.com/Nueramarcos/agent-habitat-demo/issues/1)
+
 Then:
 
 ```bash
