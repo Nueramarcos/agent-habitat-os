@@ -192,6 +192,7 @@ main() {
     profile)       cmd_profile "$@" ;;
     demo)          cmd_demo ;;
     ci-setup|ci)   cmd_ci_setup "$@" ;;
+    ci-auth)       bash "$HABITAT_ROOT/scripts/ci-auth.sh" ;;
     iso)           cmd_iso "$@" ;;
     docs)          less "$HABITAT_ROOT/README.md" 2>/dev/null || cat "$HABITAT_ROOT/README.md" ;;
     ""|help|-h)    usage ;;

@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  habitat-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: ISO smoke checks
+        run: bash iso/scripts/qemu-smoke.sh
+
+      - name: Demo pytest
+        run: |
+          cd demo/agent-habitat-demo
+          python3 -m venv .venv
+          .venv/bin/pip install pytest
+          .venv/bin/python -m pytest -q
+
+      - name: Verify script syntax
+        run: bash -n first-boot/install.sh && bash -n first-boot/init.sh

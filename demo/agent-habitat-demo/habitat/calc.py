@@ -42,3 +42,13 @@ def median(values: list[float]) -> float:
     if n % 2:
         return float(s[mid])
     return (float(s[mid - 1]) + float(s[mid])) / 2.0
+
+
+def mode(values: list[int]) -> int | None:
+    """Return the most frequent value; None if empty."""
+    if not values:
+        return None
+    counts: dict[int, int] = {}
+    for v in values:
+        counts[v] = counts.get(v, 0) + 1
+    return max(counts, key=counts.get)

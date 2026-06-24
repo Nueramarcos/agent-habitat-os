@@ -13,6 +13,8 @@ META_DATA="$BUILD/usb/meta-data"
 bash "$ROOT/iso/prepare-usb.sh" >/dev/null 2>&1 || true
 [[ -f "$DISK" ]] || qemu-img create -f qcow2 "$DISK" 32G >/dev/null
 
+echo $$ > "$BUILD/qemu-gui.pid"
+
 exec qemu-system-x86_64 \
   -machine pc,accel=kvm -cpu qemu64 -m 4096 -smp 2 \
   -drive "file=$DISK,if=virtio,format=qcow2" \
